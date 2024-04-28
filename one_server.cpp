@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 15:27:52 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/04/27 16:39:57 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/04/28 23:46:08 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,23 +16,24 @@
 #include <arpa/inet.h>
 #include "unistd.h"
 #include "fcntl.h"
+#include "string.h"
 
-void setnonblocking(int sock)
-{
-	int opts;
+// void setnonblocking(int sock)
+// {
+// 	int opts;
 
-	opts = fcntl(sock,F_GETFL);
-	if (opts < 0) {
-		perror("fcntl(F_GETFL)");
-		exit(EXIT_FAILURE);
-	}
-	opts = (opts | O_NONBLOCK);
-	if (fcntl(sock,F_SETFL,opts) < 0) {
-		perror("fcntl(F_SETFL)");
-		exit(EXIT_FAILURE);
-	}
-	return;
-}
+// 	opts = fcntl(sock,F_GETFL);
+// 	if (opts < 0) {
+// 		perror("fcntl(F_GETFL)");
+// 		exit(EXIT_FAILURE);
+// 	}
+// 	opts = (opts | O_NONBLOCK);
+// 	if (fcntl(sock,F_SETFL,opts) < 0) {
+// 		perror("fcntl(F_SETFL)");
+// 		exit(EXIT_FAILURE);
+// 	}
+// 	return;
+// }
 
 #include "ClientData.hpp"
 #include <map>
@@ -68,41 +69,26 @@ void sendIndexHtml(int clientSocket) {
     send(clientSocket, response.c_str(), response.length(), 0);
 }
 
+#include "ServerData.hpp"
+
 int main(void){
+	std::vector<class ServerData> servers;
+	std::vector<int> ports;
+	ports.push_back(8080);
+	ports.push_back(8081);
+	ServerData serv1("serv1", "127.0.0.1", ports);
+	// serv1.printFds();
+	// exit(0);
 	//setup of the server socket
-	int servfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (servfd == -1){
-		perror("socket");
-		exit (1);
-	}
-	int reuse_addr = 1;
-	/* So that we can re-bind to it without TIME_WAIT problems */
-	setsockopt(servfd, SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof(reuse_addr));
-	/* Set socket to non-blocking with our setnonblocking routine */
-	setnonblocking(servfd);
-	//binding the socket (Associate the socket with a the address and port)
-	sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	addr.sin_port = htons(8080);
-	if ((bind(servfd, (struct sockaddr *)&addr, sizeof(addr)))== -1){
-		perror("bind");
-		close(servfd);
-		return (1);
-	}
-	// make the socket in listen mode
-	if (listen(servfd, SOMAXCONN) == -1){
-		perror("listen");
-		close(servfd);
-		exit (1);
-	}
 	std::cout << "server start listening on port 8080\n";
 	// Set of file descriptors to monitor
+	std::vector<int> sockets = serv1.getServSockets();
     fd_set currSocketR;
     fd_set readySocketR;
-    FD_ZERO(&currSocketR);
-    FD_SET(servfd, &currSocketR);
-	
+    FD_ZERO(&currSocketR);//add all server fds to currSocketR
+	for(int i = 0; i < sockets.size(); i++){
+		FD_SET(sockets[i], &currSocketR);
+	}
     fd_set currSocketW;
     fd_set readySocketW;
     FD_ZERO(&currSocketW);
@@ -117,15 +103,15 @@ int main(void){
 		}
 		for(int i = 0; i < FD_SETSIZE; i++){
 			if (FD_ISSET(i, &readySocketR)){ // i is ready for reading
-				if (i == servfd){ //there is an incoming connection request from a client waiting to be accepted.
+				if (serv1.isIaSocket(i)){ //there is an incoming connection request from a client waiting to be accepted.
 					struct sockaddr_in clientAddr;
 					socklen_t clientAddLen = sizeof(clientAddr);
-					int cltfd = accept(servfd, (struct sockaddr *)&clientAddr, &clientAddLen);
+					int cltfd = accept(i, (struct sockaddr *)&clientAddr, &clientAddLen);
 					std::cout << "client: " << cltfd << " connected\n";
 					FD_SET(cltfd, &currSocketR);
 					
-					ClientData tmpData(cltfd, clientAddr);
-					clients[cltfd] = tmpData;
+					// ClientData tmpData(cltfd, clientAddr);
+					// clients[cltfd] = tmpData;
 				}
 				else{
 					///reading the data
@@ -137,7 +123,7 @@ int main(void){
 						else{
 							std::cerr << "Error: Could not receive data from client " << i << std::endl;
 						}
-						clients.erase(i);
+						// clients.erase(i);
 						FD_CLR(i, &currSocketR);
 						close(i);
 						// FD_CLR(i, &currSocketW);
@@ -163,6 +149,6 @@ int main(void){
 			}
 		}
 	}
-	close(servfd);
+	// close(servfd);
 	return (0);
 }
