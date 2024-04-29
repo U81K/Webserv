@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 15:27:52 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/04/29 21:51:39 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/04/29 23:21:51 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,37 +38,7 @@
 #include "ClientData.hpp"
 #include <map>
 
-bool requestIsFinished(char *buffer, int bytesReceived){
-	std::string req = std::string(buffer);
-	// std::cout << req << std::endl;
-	if (req.find("GET") != std::string::npos){//checking GET
-		if (req.find("\r\n\r\n") != std::string::npos)
-			return (true);
-	}
-	else if (req.find("POST") != std::string::npos){//checking POST
-		size_t conLenght = 0;
-		char *headerEnd = strstr(buffer, "\r\n\r\n");
-		if (headerEnd == NULL)
-			return (false);
-		size_t clPos = req.find("Content-Length: ");
-		if (clPos != std::string::npos){
-			std::string line = req.substr(clPos, req.size());
-			size_t untelLine = line.find("\n");
-			std::string allLine = line.substr(0, untelLine);
-			std::string contLenght = allLine.substr(16, allLine.size());
-			char *end;
-			size_t contLen = std::strtod(contLenght.c_str(), &end);/// Content-Length
-			std::string body = headerEnd + 4;
-			if (body.size() == contLen){
-				std::cout << "----------------------> salat\n";
-				return (true);
-			}
-			else
-				return (false);
-		}
-	}
-	return (false);
-}
+
 #include <fstream>
 #include <sstream>
 
@@ -93,6 +63,7 @@ void sendIndexHtml(int clientSocket) {
 }
 
 #include "ServerData.hpp"
+#include <algorithm>
 
 int main(void){
 	std::vector<class ServerData> servers;
@@ -163,13 +134,18 @@ int main(void){
 					}
 					else{
 						buffer[bytesReceived] = '\0';
-						if (requestIsFinished(buffer, bytesReceived)){
-							clients[i].finishReq(buffer);
+						if (clients[i].readRequest(buffer, bytesReceived)){
 							FD_CLR(i, &currSocketR);
 							FD_SET(i, &currSocketW);
 						}
-						else
-							clients[i].appendReq(buffer);
+						
+						// if (requestIsFinished(buffer, bytesReceived)){
+						// 	clients[i].finishReq(buffer);
+						// 	FD_CLR(i, &currSocketR);
+						// 	FD_SET(i, &currSocketW);
+						// }
+						// else
+						// 	clients[i].appendReq(buffer);
 					}
 				}
 			}
