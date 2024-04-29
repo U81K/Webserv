@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 15:27:52 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/04/28 23:46:08 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/04/29 16:32:18 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,16 +73,27 @@ void sendIndexHtml(int clientSocket) {
 
 int main(void){
 	std::vector<class ServerData> servers;
-	std::vector<int> ports;
-	ports.push_back(8080);
-	ports.push_back(8081);
-	ServerData serv1("serv1", "127.0.0.1", ports);
-	// serv1.printFds();
-	// exit(0);
-	//setup of the server socket
+	//serv1
+	std::vector<int> ports1;
+	ports1.push_back(8080);
+	ports1.push_back(8081);
+	ServerData serv1("serv1", "127.0.0.1", ports1);
+	servers.push_back(serv1);
+	//serv2
+	std::vector<int> ports2;
+	ports2.push_back(8082);
+	ports2.push_back(8083);
+	ServerData serv2("serv2", "127.0.0.1", ports2);
+	servers.push_back(serv2);
 	std::cout << "server start listening on port 8080\n";
-	// Set of file descriptors to monitor
-	std::vector<int> sockets = serv1.getServSockets();
+	std::vector<int> sockets;
+	for(int i = 0; i < servers.size(); i++){
+		std::vector<int> servFds = servers[i].getServSockets();
+		for (int j = 0; j < servFds.size(); j++){
+			sockets.push_back(servFds[j]);
+		}
+	}
+	// sockets.push_back(serv2.getServSockets());
     fd_set currSocketR;
     fd_set readySocketR;
     FD_ZERO(&currSocketR);//add all server fds to currSocketR
@@ -103,15 +114,15 @@ int main(void){
 		}
 		for(int i = 0; i < FD_SETSIZE; i++){
 			if (FD_ISSET(i, &readySocketR)){ // i is ready for reading
-				if (serv1.isIaSocket(i)){ //there is an incoming connection request from a client waiting to be accepted.
+				if (std::find(sockets.begin(), sockets.end(), i) != sockets.end()){ //there is an incoming connection request from a client waiting to be accepted.
 					struct sockaddr_in clientAddr;
 					socklen_t clientAddLen = sizeof(clientAddr);
 					int cltfd = accept(i, (struct sockaddr *)&clientAddr, &clientAddLen);
 					std::cout << "client: " << cltfd << " connected\n";
 					FD_SET(cltfd, &currSocketR);
 					
-					// ClientData tmpData(cltfd, clientAddr);
-					// clients[cltfd] = tmpData;
+					ClientData tmpData(cltfd, clientAddr);
+					clients[cltfd] = tmpData;
 				}
 				else{
 					///reading the data
@@ -123,7 +134,7 @@ int main(void){
 						else{
 							std::cerr << "Error: Could not receive data from client " << i << std::endl;
 						}
-						// clients.erase(i);
+						clients.erase(i);
 						FD_CLR(i, &currSocketR);
 						close(i);
 						// FD_CLR(i, &currSocketW);
