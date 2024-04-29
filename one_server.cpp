@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 15:27:52 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/04/29 16:32:18 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/04/29 21:51:39 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,9 +40,32 @@
 
 bool requestIsFinished(char *buffer, int bytesReceived){
 	std::string req = std::string(buffer);
-	if (req.find("GET") != std::string::npos){
+	// std::cout << req << std::endl;
+	if (req.find("GET") != std::string::npos){//checking GET
 		if (req.find("\r\n\r\n") != std::string::npos)
 			return (true);
+	}
+	else if (req.find("POST") != std::string::npos){//checking POST
+		size_t conLenght = 0;
+		char *headerEnd = strstr(buffer, "\r\n\r\n");
+		if (headerEnd == NULL)
+			return (false);
+		size_t clPos = req.find("Content-Length: ");
+		if (clPos != std::string::npos){
+			std::string line = req.substr(clPos, req.size());
+			size_t untelLine = line.find("\n");
+			std::string allLine = line.substr(0, untelLine);
+			std::string contLenght = allLine.substr(16, allLine.size());
+			char *end;
+			size_t contLen = std::strtod(contLenght.c_str(), &end);/// Content-Length
+			std::string body = headerEnd + 4;
+			if (body.size() == contLen){
+				std::cout << "----------------------> salat\n";
+				return (true);
+			}
+			else
+				return (false);
+		}
 	}
 	return (false);
 }
@@ -96,7 +119,7 @@ int main(void){
 	// sockets.push_back(serv2.getServSockets());
     fd_set currSocketR;
     fd_set readySocketR;
-    FD_ZERO(&currSocketR);//add all server fds to currSocketR
+    FD_ZERO(&currSocketR);//add all servers fds to currSocketR
 	for(int i = 0; i < sockets.size(); i++){
 		FD_SET(sockets[i], &currSocketR);
 	}
@@ -137,24 +160,21 @@ int main(void){
 						clients.erase(i);
 						FD_CLR(i, &currSocketR);
 						close(i);
-						// FD_CLR(i, &currSocketW);
 					}
 					else{
 						buffer[bytesReceived] = '\0';
-						std::cout << "-----------Received data from client " << i << "----------------\n";
-						
-						std::cout << buffer << std::endl;
-						std::cout << "--------------------------------------------------------\n";
 						if (requestIsFinished(buffer, bytesReceived)){
+							clients[i].finishReq(buffer);
 							FD_CLR(i, &currSocketR);
 							FD_SET(i, &currSocketW);
 						}
+						else
+							clients[i].appendReq(buffer);
 					}
 				}
 			}
 			else if (FD_ISSET(i, &readySocketW)){
-				char *res = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
-				send(i, res, strlen(res), 0);
+				clients[i].sendResponce();
 				FD_CLR(i, &currSocketW);
 				FD_SET(i, &currSocketR);
 			}
