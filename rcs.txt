@@ -1,0 +1,15 @@
+
+https://stackoverflow.com/questions/27014955/socket-connect-vs-bind
+https://beej.us/guide/bgnet/html/#audience
+https://linux.die.net/man/2/bind
+http://webcache.googleusercontent.com/search?q=cache:https://medium.com/@gabriellamedas/the-http-server-explained-c41380307917&strip=0&vwsrc=1&referer=medium-parser
+https://earthy-mandarin-bcd.notion.site/Webserv-8e45bd5fd3ab42889566c11cfe18a89c
+https://en.wikipedia.org/wiki/Common_Gateway_Interface
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET
+https://www.digitalocean.com/community/tutorials/understanding-the-nginx-configuration-file-structure-and-configuration-contexts#understanding-nginx-configuration-contexts
+
+
+
+
+
+
