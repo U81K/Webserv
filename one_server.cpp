@@ -65,7 +65,23 @@ void sendIndexHtml(int clientSocket) {
 #include "ServerData.hpp"
 #include <algorithm>
 
-int main(void){
+class config{
+	private:
+		std::string config_path;
+	public:
+		config(std::string path);
+
+};
+
+config::config(std::string config_path)
+{
+	this->config_path = config_path;
+}
+
+int main(int ac , char **av)
+{
+	std::string c_path = av[1];
+	config conf(c_path);
 	std::vector<class ServerData> servers;
 	//serv1
 	std::vector<int> ports1;
