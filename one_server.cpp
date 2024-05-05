@@ -81,7 +81,7 @@ config::config(std::string config_path)
 int main(int ac , char **av)
 {
 	std::string c_path = av[1];
-	config conf(c_path);
+	config conf(c_path);// khas l config file ytparssa  
 	std::vector<class ServerData> servers;
 	//serv1
 	std::vector<int> ports1;
