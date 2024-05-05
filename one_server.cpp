@@ -64,22 +64,15 @@ void sendIndexHtml(int clientSocket) {
 
 #include "ServerData.hpp"
 #include <algorithm>
-
-class config{
-	private:
-		std::string config_path;
-	public:
-		config(std::string path);
-
-};
-
-config::config(std::string config_path)
-{
-	this->config_path = config_path;
-}
+#include "config.hpp"
 
 int main(int ac , char **av)
 {
+	if(ac < 2)
+	{
+		std::cerr<<"config file required"<< std::endl;
+		return 1;
+	}
 	std::string c_path = av[1];
 	config conf(c_path);// khas l config file ytparssa  
 	std::vector<class ServerData> servers;
