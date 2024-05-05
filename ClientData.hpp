@@ -80,13 +80,14 @@ class ClientData{
 		
 		void sendResponce(){
 			if (isReqFinished){
-				char *res = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
+				const char *res = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
 				send(sockfd, res, strlen(res), 0);
 				isReqFinished = false;
 				std::cout << req << std::endl;
 				req.clear();
 			}
 		}
+
 		void finishReq(char *buffer){
 			req.append(buffer);
 			isReqFinished = true;
