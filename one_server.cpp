@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 15:27:52 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/04/29 23:21:51 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/11 11:29:52 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ int main(void){
 	ports2.push_back(8083);
 	ServerData serv2("serv2", "127.0.0.1", ports2);
 	servers.push_back(serv2);
-	std::cout << "server start listening on port 8080\n";
+	// std::cout << "server start listening on port 8080\n";
 	std::vector<int> sockets;
 	for(int i = 0; i < servers.size(); i++){
 		std::vector<int> servFds = servers[i].getServSockets();
@@ -98,6 +98,8 @@ int main(void){
     fd_set readySocketW;
     FD_ZERO(&currSocketW);
 	std::map<int, ClientData> clients;
+	size_t readed = 0;
+	char buffer[1024 * 400];
 	while (true){
 		readySocketR = currSocketR;
 		readySocketW = currSocketW;
@@ -112,7 +114,7 @@ int main(void){
 					struct sockaddr_in clientAddr;
 					socklen_t clientAddLen = sizeof(clientAddr);
 					int cltfd = accept(i, (struct sockaddr *)&clientAddr, &clientAddLen);
-					std::cout << "client: " << cltfd << " connected\n";
+					// std::cout << "client: " << cltfd << " connected\n";
 					FD_SET(cltfd, &currSocketR);
 					
 					ClientData tmpData(cltfd, clientAddr);
@@ -120,40 +122,56 @@ int main(void){
 				}
 				else{
 					///reading the data
-					char buffer[1024];
-					ssize_t bytesReceived = recv(i, buffer, 1024, 0);
-					if (bytesReceived <= 0){
-						if (bytesReceived == 0)
-							std::cout << "Client disconnected: " << i << std::endl;
-						else{
-							std::cerr << "Error: Could not receive data from client " << i << std::endl;
-						}
-						clients.erase(i);
-						FD_CLR(i, &currSocketR);
-						close(i);
-					}
-					else{
-						buffer[bytesReceived] = '\0';
+					// std::cout << "here\n";
+					// char buffer[1024 * 400];
+					bzero(buffer, 1024 * 400);
+					int bytesReceived = 0;
+					bytesReceived = recv(i, buffer, sizeof(buffer), 0);
+					// bytesReceived = read(i, buffer, 1024 * 400);
+					if (bytesReceived > 0){
+						// buffer[bytesReceived] = '\0';
+						// if (bytesReceived > 0) {
+						// 	// 	readed += bytesReceived;
+						// 	// // std::cout << buffer;
+						// 	// // std::cout << buffer << std::endl;
+						// 	// usleep(500);
+						// 	// write(1, buffer, strlen(buffer));
+						// 	// // std::cout << "------>" << readed << std::endl;
+						// 	// // exit(1);
+						// 	// // exit(0);
+						// std::cout << "test" << std::endl;
+						// std::cout << "+" << buffer << "+\n";
+						// std::cout << "bytes received= " << bytesReceived << std::endl;
+						// std::cout << "strlen(buffer)= "<< strlen(buffer) << std::endl;
+						// std::cout << buffer;
 						if (clients[i].readRequest(buffer, bytesReceived)){
 							FD_CLR(i, &currSocketR);
 							FD_SET(i, &currSocketW);
 						}
-						
-						// if (requestIsFinished(buffer, bytesReceived)){
-						// 	clients[i].finishReq(buffer);
-						// 	FD_CLR(i, &currSocketR);
-						// 	FD_SET(i, &currSocketW);
 						// }
-						// else
-						// 	clients[i].appendReq(buffer);
+					}
+					else if (bytesReceived == 0){
+						continue;
+					}
+					else if (bytesReceived == -1){
+						// if (bytesReceived == 0)
+							// std::cout << "Client disconnected: " << i << std::endl;
+						// else{
+						// 	std::cerr << "Error: Could not receive data from client " << i << std::endl;
+						// }
+						// clients.erase(i);
+						FD_CLR(i, &currSocketR);
+						close(i);
+						std::cout << "connection closed\n";
 					}
 				}
 			}
-			else if (FD_ISSET(i, &readySocketW)){
-				clients[i].sendResponce();
-				FD_CLR(i, &currSocketW);
-				FD_SET(i, &currSocketR);
-			}
+			// else if (FD_ISSET(i, &readySocketW)){
+			// 	if (clients[i].sendResponce()){
+			// 		FD_CLR(i, &currSocketW);
+			// 		FD_SET(i, &currSocketR);
+			// 	}
+			// }
 		}
 	}
 	// close(servfd);
