@@ -139,7 +139,7 @@ int main(void){
 						
 						std::cout << buffer << std::endl;
 						std::cout << "--------------------------------------------------------\n";
-						char *res = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
+						const char *res = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
 						FD_CLR(i, &readFds);
 						send(i, res, strlen(res), 0);
 					}
