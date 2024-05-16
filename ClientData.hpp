@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 13:03:21 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/16 16:02:55 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/16 16:26:59 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ class request{
 				if (boundaryFound){
 					for (int i = 0; i < fullReq.size(); i++){
 						if (fullReq[i].find(boundary) != std::string::npos){
-							std::cout << boundary << std::endl;
+							// std::cout << boundary << std::endl;
 							return (true);
 						}
 					}
