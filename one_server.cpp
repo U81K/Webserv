@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 15:27:52 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/11 11:29:52 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/15 23:09:44 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,7 +114,7 @@ int main(void){
 					struct sockaddr_in clientAddr;
 					socklen_t clientAddLen = sizeof(clientAddr);
 					int cltfd = accept(i, (struct sockaddr *)&clientAddr, &clientAddLen);
-					// std::cout << "client: " << cltfd << " connected\n";
+					std::cout << "client: " << cltfd << " connected\n";
 					FD_SET(cltfd, &currSocketR);
 					
 					ClientData tmpData(cltfd, clientAddr);
@@ -122,56 +122,35 @@ int main(void){
 				}
 				else{
 					///reading the data
-					// std::cout << "here\n";
-					// char buffer[1024 * 400];
 					bzero(buffer, 1024 * 400);
 					int bytesReceived = 0;
 					bytesReceived = recv(i, buffer, sizeof(buffer), 0);
-					// bytesReceived = read(i, buffer, 1024 * 400);
 					if (bytesReceived > 0){
-						// buffer[bytesReceived] = '\0';
-						// if (bytesReceived > 0) {
-						// 	// 	readed += bytesReceived;
-						// 	// // std::cout << buffer;
-						// 	// // std::cout << buffer << std::endl;
-						// 	// usleep(500);
-						// 	// write(1, buffer, strlen(buffer));
-						// 	// // std::cout << "------>" << readed << std::endl;
-						// 	// // exit(1);
-						// 	// // exit(0);
-						// std::cout << "test" << std::endl;
-						// std::cout << "+" << buffer << "+\n";
-						// std::cout << "bytes received= " << bytesReceived << std::endl;
-						// std::cout << "strlen(buffer)= "<< strlen(buffer) << std::endl;
-						// std::cout << buffer;
 						if (clients[i].readRequest(buffer, bytesReceived)){
+							std::cout << "client: " << i << " send a request\n";
 							FD_CLR(i, &currSocketR);
 							FD_SET(i, &currSocketW);
 						}
-						// }
 					}
 					else if (bytesReceived == 0){
-						continue;
-					}
-					else if (bytesReceived == -1){
-						// if (bytesReceived == 0)
-							// std::cout << "Client disconnected: " << i << std::endl;
-						// else{
-						// 	std::cerr << "Error: Could not receive data from client " << i << std::endl;
-						// }
-						// clients.erase(i);
+						std::cout << "client: " << i << " disconnected\n";
+						clients.erase(i);
 						FD_CLR(i, &currSocketR);
 						close(i);
-						std::cout << "connection closed\n";
+					}
+					else if (bytesReceived == -1){
+						clients.erase(i);
+						FD_CLR(i, &currSocketR);
+						close(i);
 					}
 				}
 			}
-			// else if (FD_ISSET(i, &readySocketW)){
-			// 	if (clients[i].sendResponce()){
-			// 		FD_CLR(i, &currSocketW);
-			// 		FD_SET(i, &currSocketR);
-			// 	}
-			// }
+			else if (FD_ISSET(i, &readySocketW)){
+				if (clients[i].sendResponce()){
+					FD_CLR(i, &currSocketW);
+					FD_SET(i, &currSocketR);
+				}
+			}
 		}
 	}
 	// close(servfd);
