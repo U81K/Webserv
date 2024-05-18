@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:05:03 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/17 23:46:29 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/18 09:46:55 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,19 +157,20 @@ void request::parsingRequest(){
 		else
 			bodyString.append(fullReq[i]);
 	}
+	/// the body includes the boundary
 	// std::cout << bodyString << std::endl;
-	std::string boundary = bodyString.substr(0, bodyString.find("\r\n"));
-	size_t contentStart = bodyString.find("\r\n\r\n") + 4;
-	bodyString = bodyString.substr(contentStart);
-	if (bodyString.find(boundary) != std::string::npos){
-		bodyString = bodyString.substr(0, bodyString.find(boundary));
-	}
-	std::cout << bodyString;
-	std::ofstream file("image.jpg", std::ios::binary);
-	if (!file.is_open()) {
-        std::cerr << "Failed to open file: image.jpg" << std::endl;
-        return;
-    }
-	file.write(bodyString.data(), bodyString.size());
-	file.close();
+	// std::string boundary = bodyString.substr(0, bodyString.find("\r\n"));
+	// size_t contentStart = bodyString.find("\r\n\r\n") + 4;
+	// bodyString = bodyString.substr(contentStart);
+	// if (bodyString.find(boundary) != std::string::npos){
+	// 	bodyString = bodyString.substr(0, bodyString.find(boundary));
+	// }
+	// std::cout << bodyString;
+	// std::ofstream file("image.jpg", std::ios::binary);
+	// if (!file.is_open()) {
+    //     std::cerr << "Failed to open file: image.jpg" << std::endl;
+    //     return;
+    // }
+	// file.write(bodyString.data(), bodyString.size());
+	// file.close();
 }

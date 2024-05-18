@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:04:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/17 22:46:32 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/18 09:47:14 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ class request{
 		std::string url;//check
 		std::string httpVersion;//check
 		std::map<std::string, std::string> headersMap;//check
-		std::string bodyString;
+		std::string bodyString;//check
 };
 
 #endif

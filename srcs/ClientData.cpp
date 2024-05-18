@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:56:38 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/17 21:20:28 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/18 09:53:49 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,6 @@ void ClientData::outputHTTPRequestToFile(const std::string& httpRequest, const s
 bool ClientData::sendResponce(){
 	if (isReqFinished){
 		std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
-		// char *res = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
-		// send(sockfd, res, strlen(res), 0);
 		send(sockfd, response.c_str(), response.size(), 0);
 		// req.printFullReq();
 		req.clear();
