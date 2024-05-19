@@ -6,11 +6,12 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:47:10 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/17 19:20:04 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/19 13:01:38 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incs/ServerData.hpp"
+#include <cstdlib>
 
 ServerData::ServerData(std::string servName, std::string ho, std::vector<int> portss)
 	: serverName(servName), host(ho), ports(portss) {

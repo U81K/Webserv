@@ -6,11 +6,12 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:05:03 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/18 09:46:55 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/19 12:36:15 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incs/request.hpp"
+#include <stdlib.h>
 
 request::request(){
 	method = UNKNOWN;
