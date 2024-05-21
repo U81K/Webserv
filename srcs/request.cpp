@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:05:03 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 12:36:15 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/19 19:14:20 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,4 +174,24 @@ void request::parsingRequest(){
     // }
 	// file.write(bodyString.data(), bodyString.size());
 	// file.close();
+}
+
+request::Method request::getMethod(){
+	return (method);
+}
+
+std::string request::getUrl(){
+	return (url);
+}
+
+std::string request::getHttpV(){
+	return(httpVersion);
+}
+
+std::map<std::string, std::string> request::getHeadersMap(){
+	return (headersMap);
+}
+
+std::string request::getBodyString(){
+	return (bodyString);
 }

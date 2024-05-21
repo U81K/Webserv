@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:04:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/18 09:47:14 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/19 19:13:10 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,12 @@ class request{
 		void printFullReq();
 		void clear();
 		void parsingRequest();
+		Method getMethod();
+		std::string getUrl();
+		std::string getHttpV();
+		std::map<std::string, std::string> getHeadersMap();
+		std::string getBodyString();
+		// void generateResp();
 	private:
 		std::vector<std::string> fullReq;
 		size_t addBufCouter;
@@ -45,11 +51,11 @@ class request{
 		size_t contentLend;
 		size_t bytesReaded;
 		///
-		Method method;//check
-		std::string url;//check
-		std::string httpVersion;//check
-		std::map<std::string, std::string> headersMap;//check
-		std::string bodyString;//check
+		Method method;
+		std::string url;
+		std::string httpVersion;
+		std::map<std::string, std::string> headersMap;
+		std::string bodyString;
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 17:42:38 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/19 18:37:27 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,8 @@ bool isFdOfServers(int fd, std::vector<class ServerData> &servers){
 	for(unsigned int i = 0; i < servers.size(); i++){
 		std::vector<int> socketsOfOneServ = servers[i].getServSockets();
 		for(unsigned int j = 0; j < socketsOfOneServ.size(); j++){
-			// FD_SET(socketsOfOneServ[j], &currSocketR);
 			if (fd == socketsOfOneServ[j])
 				return (true);
-			// std::cout << socketsOfOneServ[j] << std::endl;
 		}
 	}
 	return (false);
@@ -29,17 +27,12 @@ void startServer(std::vector<class ServerData> &servers){
 	fd_set currSocketR;
     fd_set readySocketR;
     FD_ZERO(&currSocketR);//add all servers fds to currSocketR
-	// for(unsigned long i = 0; i < fds.size(); i++){
-	// 	FD_SET(fds[i], &currSocketR);
-	// }
 	for(unsigned int i = 0; i < servers.size(); i++){
 		std::vector<int> socketsOfOneServ = servers[i].getServSockets();
 		for(unsigned int j = 0; j < socketsOfOneServ.size(); j++){
 			FD_SET(socketsOfOneServ[j], &currSocketR);
-			// std::cout << socketsOfOneServ[j] << std::endl;
 		}
 	}
-	// exit(0);
     fd_set currSocketW;
     fd_set readySocketW;
     FD_ZERO(&currSocketW);
@@ -55,7 +48,6 @@ void startServer(std::vector<class ServerData> &servers){
 		}
 		for(int i = 0; i < FD_SETSIZE; i++){
 			if (FD_ISSET(i, &readySocketR)){ // i is ready for reading
-				// if (std::find(fds.begin(), fds.end(), i) != fds.end()){ //there is an incoming connection request from a client waiting to be accepted.
 				if (isFdOfServers(i, servers)){ //there is an incoming connection request from a client waiting to be accepted.
 					struct sockaddr_in clientAddr;
 					socklen_t clientAddLen = sizeof(clientAddr);
@@ -123,15 +115,7 @@ int main(int ac, char **av){
 	ServerData serv2("serv2", "127.0.0.1", ports2);
 	servers.push_back(serv2);
 	// std::cout << "server start listening on port 8080\n";
-	// std::vector<int> sockets;
-	// for(unsigned long i = 0; i < servers.size(); i++){
-	// 	std::vector<int> servFds = servers[i].getServSockets();
-	// 	for (unsigned long j = 0; j < servFds.size(); j++){
-	// 		sockets.push_back(servFds[j]);
-	// 	}
-	// }
 	// // sockets.push_back(serv2.getServSockets());
-	// startServer(sockets);
 	startServer(servers);
 	// close(servfd);
 	return (0);

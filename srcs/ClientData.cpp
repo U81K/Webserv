@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:56:38 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 17:43:31 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/19 19:28:41 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,8 @@ bool ClientData::readRequest(char *buffer, size_t bytesReceived){
 
 bool ClientData::sendResponce(){
 	if (isReqFinished){
-		std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
-		send(sockfd, response.c_str(), response.size(), 0);
+		res.generate(req);
+		res.sending(sockfd);
 		req.printFullReq();
 		req.clear();
 		isReqFinished = false;
