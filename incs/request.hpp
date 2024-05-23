@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:04:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 19:13:10 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/22 11:57:42 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <map>
+// #include "ServerData.hpp"
 
 class request{
 	public:
@@ -40,6 +41,12 @@ class request{
 		std::string getHttpV();
 		std::map<std::string, std::string> getHeadersMap();
 		std::string getBodyString();
+		// void setServer(){
+			
+		// }
+		// ServerData &getServer(){
+			
+		// }
 		// void generateResp();
 	private:
 		std::vector<std::string> fullReq;
@@ -56,6 +63,7 @@ class request{
 		std::string httpVersion;
 		std::map<std::string, std::string> headersMap;
 		std::string bodyString;
+		// ServerData server;
 };
 
 #endif

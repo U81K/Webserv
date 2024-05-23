@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 18:37:27 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/23 17:35:27 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ void startServer(std::vector<class ServerData> &servers){
 				}
 			}
 			else if (FD_ISSET(i, &readySocketW)){
-				if (clients[i].sendResponce()){
+				if (clients[i].sendResponce(servers)){
 					FD_CLR(i, &currSocketW);
 					FD_SET(i, &currSocketR);
 				}
@@ -113,7 +113,11 @@ int main(int ac, char **av){
 	ports2.push_back(8082);
 	ports2.push_back(8083);
 	ServerData serv2("serv2", "127.0.0.1", ports2);
+	// Location loc1;
+	// loc1.path = "/";
+	// serv2.addLocation(loc1);
 	servers.push_back(serv2);
+
 	// std::cout << "server start listening on port 8080\n";
 	// // sockets.push_back(serv2.getServSockets());
 	startServer(servers);

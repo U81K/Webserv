@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 13:03:21 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 19:04:53 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/23 17:24:47 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,9 @@
 #include <sstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include "../incs/request.hpp"
-#include "../incs/response.hpp"
+#include "request.hpp"
+#include "response.hpp"
+#include "ServerData.hpp"
 
 class ClientData{
 	private:
@@ -29,13 +30,14 @@ class ClientData{
 		bool isReqFinished;
 		request req;
 		response res;
+		// ServerData server;
 	public:
 		ClientData(){}
 		ClientData(int fd, struct sockaddr_in a);
 		int getSocketFd();
 		bool readRequest(char *buffer, size_t bytesReceived);
 		// void outputHTTPRequestToFile(const std::string& httpRequest, const std::string& filename);
-		bool sendResponce();
+		bool sendResponce(std::vector<class ServerData> &servers);
 		// void generateResp();
 };
 

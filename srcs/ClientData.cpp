@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:56:38 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 19:28:41 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/23 17:28:19 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ bool ClientData::readRequest(char *buffer, size_t bytesReceived){
 // 	outFile.close();
 // }
 
-bool ClientData::sendResponce(){
+bool ClientData::sendResponce(std::vector<class ServerData> &servers){
 	if (isReqFinished){
 		res.generate(req);
 		res.sending(sockfd);

@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 18:09:00 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/17 19:19:39 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/22 11:53:22 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class ServerData{
 		std::vector<int> ports;
 		std::vector<Location> locations;
 	public:
+		ServerData(){}
 		ServerData(std::string servName, std::string ho, std::vector<int> portss);
 		std::vector<int> &getServSockets();
 		bool isIaSocket(int i);
