@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 16:25:53 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/17 18:46:53 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/23 19:13:00 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,5 +25,6 @@
 #include <sstream>
 #include <algorithm>
 #include "ServerData.hpp"
+#include "ClientData.hpp"
 
 #endif

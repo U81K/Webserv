@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/23 17:28:37 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/27 16:13:32 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,19 @@
 #include <map>
 #include "../incs/request.hpp"
 #include <sys/socket.h>
+#include "ServerData.hpp"
 
 class response{
 	private:
 		std::string statusLine;
 		std::map<std::string, std::string> headers;
 		std::string body;
-		std::vector<class ServerData> servs;
 	public:
+		void clear(){
+			statusLine.clear();
+			headers.clear();
+			body.clear();
+		}
 		bool foundInAllowedChat(char c){
 			if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
 				return (true);
@@ -55,7 +60,19 @@ class response{
 			headers["Content-Length"] = std::to_string(body.size());
 		}
 
-		bool isReqWellFormated(request &req){
+		void requestEntityTooLarge(request &req){
+			statusLine = req.getHttpV() + " 403 request entity too large";
+			body = readFromFile("./pages/403.html");
+			headers["Content-Length"] = std::to_string(body.size());
+		}
+		
+		void notImplemented(request &req){
+			statusLine = req.getHttpV() + " 501 not implemented";
+			body = readFromFile("./pages/501.html");
+			headers["Content-Length"] = std::to_string(body.size());
+		}
+		
+		bool isReqWellFormated(request &req, ServerData &server){
 			///checking if the url contain a char not allowed
 			std::string url = req.getUrl();
 			for (unsigned int i = 0; i < url.size(); i++){
@@ -69,35 +86,94 @@ class response{
 				statusrequestUriTooLarge(req);
 				return (false);
 			}
-			//
+			// checking the body size
+			if ((req.getBodyString()).size() > server.getMaxBodySize()){
+				requestEntityTooLarge(req);
+				return (false);
+			}
+			//checking post method
+			if (req.getMethod() == 1){
+				std::map<std::string, std::string> map = req.getHeadersMap();
+				if ((map["Transfer-Encoding"]).size() == 0 && (map["Content-Length"]).size() == 0){
+					statusBadRequest(req);
+					return (false);
+				}
+				//checking Transfer-Encoding
+				if ((map["Transfer-Encoding"]).size() != 0){
+					//501 not implemented
+					map["Transfer-Encoding"] = (map["Transfer-Encoding"]).substr(0, (map["Transfer-Encoding"]).size() -1);
+					if ((map["Transfer-Encoding"]).compare("chunked") != 0){
+						notImplemented(req);
+						return (false);
+					}
+				}
+			}
 			return (true);
 		}
-		void generate(request &req){
-			// servs = servers;
-			statusLine = "HTTP/1.1 200 OK";
-			body = "Hello, World!";
-			headers["Content-Length"] = "13";
-			if (isReqWellFormated(req)){
-				///checking the location requested
+		
+		void notFound(request &req){
+			statusLine = req.getHttpV() + " 404 not found";
+			body = readFromFile("./pages/404.html");
+			headers["Content-Length"] = std::to_string(body.size());
+		}
+
+		std::string parsUri(const std::string &uri){
+			std::string res;
+			unsigned int i = uri.size() - 1;
+			for(; i != 0; i--){
+				if (uri.at(i) != '/')
+					break;
 			}
+			res = uri.substr(0, i + 1);
+			res.append("/");
+			return (res);
+		}
+
+		bool isLocation(request &req, ServerData &server){
+			std::string url = parsUri(req.getUrl());
+			// req.setUrl(url);
+			std::cout << url << std::endl;
+			exit(0);
+			std::vector<Location> locs = server.getLocation();
+			for(unsigned int i = 0; i < locs.size(); i++){
+				if (url.compare(locs[i].path) == 0){
+					return (true);
+				}
+			}
+			notFound(req);
+			return (false);
+		}
+		
+		bool isLocationHaveRedi(request &req, ServerData &server){
+			return (false);
+		}
+		
+		void generate(request &req, ServerData &serv){
+			// servs = servers;
+			if (isReqWellFormated(req, serv)){
+				if (isLocation(req, serv)){
+					//checking if location have redirection
+					// if (isLocationHaveRedi(req, serv)){
+						
+					// }
+					// else{
+					// 	statusLine = "HTTP/1.1 200 OK";
+					// 	body = "hello world!";
+					// 	headers["Content-Length"] = "12";
+					// }
+				}
+			}
+			// else{
+				// /checking the location requested
+				// statusLine = "HTTP/1.1 200 OK";
+				// body = "fuck u!";
+				// headers["Content-Length"] = "7";
+			// }
 			// else	////request is not well formated
 			// 	std::cout << "request is not well formated\n";
 			// std::cout << req.getMethod() << std::endl;
 			// std::cout << req.getUrl() << std::endl;
 		}
-		// void generate(request &req, std::vector<class ServerData> &servers){
-		// 	servs = servers;
-		// 	statusLine = "HTTP/1.1 200 OK";
-		// 	body = "Hello, World!";
-		// 	headers["Content-Length"] = "13";
-		// 	if (isReqWellFormated(req)){
-		// 		///checking the location requested
-		// 	}
-		// 	// else	////request is not well formated
-		// 	// 	std::cout << "request is not well formated\n";
-		// 	// std::cout << req.getMethod() << std::endl;
-		// 	// std::cout << req.getUrl() << std::endl;
-		// }
 		void sending(int cltFd){
 			std::ostringstream response;
 			response << statusLine << "\r\n";

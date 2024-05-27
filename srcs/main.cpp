@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/23 17:35:27 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/24 19:23:50 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,17 @@ bool isFdOfServers(int fd, std::vector<class ServerData> &servers){
 		}
 	}
 	return (false);
+}
+
+ServerData getServerData(int fd, std::vector<class ServerData> &servers){
+	for(int i = 0; i < servers.size(); i++){
+		std::vector<int> tmp = servers[i].getServSockets();
+		for (int j = 0; j < tmp.size(); j++){
+			if (fd == tmp[j])
+				return (servers[i]);
+		}
+	}
+	return (ServerData());
 }
 
 void startServer(std::vector<class ServerData> &servers){
@@ -54,8 +65,10 @@ void startServer(std::vector<class ServerData> &servers){
 					int cltfd = accept(i, (struct sockaddr *)&clientAddr, &clientAddLen);
 					std::cout << "client: " << cltfd << " connected\n";
 					FD_SET(cltfd, &currSocketR);
-					
-					ClientData tmpData(cltfd, clientAddr);
+					//i is the fd of the server
+					// we should add this server class to the clientData
+					ServerData serv = getServerData(i, servers);
+					ClientData tmpData(cltfd, clientAddr, serv);
 					clients[cltfd] = tmpData;
 				}
 				else{
@@ -84,7 +97,7 @@ void startServer(std::vector<class ServerData> &servers){
 				}
 			}
 			else if (FD_ISSET(i, &readySocketW)){
-				if (clients[i].sendResponce(servers)){
+				if (clients[i].sendResponce()){
 					FD_CLR(i, &currSocketW);
 					FD_SET(i, &currSocketR);
 				}
@@ -106,16 +119,21 @@ int main(int ac, char **av){
 	std::vector<int> ports1;
 	ports1.push_back(8080);
 	ports1.push_back(8081);
-	ServerData serv1("serv1", "127.0.0.1", ports1);
+	ServerData serv1("serv1", "127.0.0.1", ports1, 1024);
+	
+	Location loc1;
+	loc1.path = "/";
+	serv1.addLocation(loc1);
+	Location loc2;
+	loc2.path = "/jj/";
+	serv1.addLocation(loc2);
+	
 	servers.push_back(serv1);
 	//serv2
 	std::vector<int> ports2;
 	ports2.push_back(8082);
 	ports2.push_back(8083);
-	ServerData serv2("serv2", "127.0.0.1", ports2);
-	// Location loc1;
-	// loc1.path = "/";
-	// serv2.addLocation(loc1);
+	ServerData serv2("serv2", "127.0.0.1", ports2, 0);
 	servers.push_back(serv2);
 
 	// std::cout << "server start listening on port 8080\n";

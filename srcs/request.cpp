@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:05:03 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 19:14:20 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/24 17:38:11 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,10 +45,8 @@ void request::addBuffer(std::string &buff, size_t bytesRec){
 		}
 		// std::cout << headersString << std::endl;
 		//check if the data is checked
-		if (headersString.find("Transfer-Encoding: chunked") != std::string::npos){
-			std::cout << "the data is chunked\n";
+		if (headersString.find("Transfer-Encoding: chunked") != std::string::npos)
 			isChunked = true;
-		}
 		//check if theres a boudary
 		size_t bouPos = headersString.find("boundary=");
 		if (bouPos != std::string::npos){
@@ -82,6 +80,8 @@ bool request::isReqFinished(){
 		}
 	}
 	else if (contentLend > 0){
+		if (contentLend == std::string::npos)
+			return (true);
 		if (boundaryFound){
 			for (unsigned long i = 0; i < fullReq.size(); i++){
 				if (fullReq[i].find(boundary) != std::string::npos){
@@ -93,8 +93,9 @@ bool request::isReqFinished(){
 		else if(contentLend == (bytesReaded - 4 - headersString.size()))///there is no boundary
 			return (true);
 	}
-	else if (contentLend == 0)
+	else if (contentLend == 0){
 		return (true);
+	}
 	return (false);
 }
 
@@ -118,6 +119,7 @@ void request::clear() {
 }
 
 void request::parsingRequest(){
+	headersMap.clear();
 	for(unsigned int i = 0; i < headersString.size(); i++){
 		if (headersString.at(i) == '\r'){
 			headersString.at(i) = ' ';

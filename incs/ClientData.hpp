@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 13:03:21 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/23 17:24:47 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/23 19:14:48 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,14 +30,14 @@ class ClientData{
 		bool isReqFinished;
 		request req;
 		response res;
-		// ServerData server;
+		ServerData server;
 	public:
 		ClientData(){}
-		ClientData(int fd, struct sockaddr_in a);
+		ClientData(int fd, struct sockaddr_in a, ServerData &serv);
 		int getSocketFd();
 		bool readRequest(char *buffer, size_t bytesReceived);
 		// void outputHTTPRequestToFile(const std::string& httpRequest, const std::string& filename);
-		bool sendResponce(std::vector<class ServerData> &servers);
+		bool sendResponce();
 		// void generateResp();
 };
 

@@ -6,14 +6,15 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:56:38 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/23 17:28:19 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/24 16:42:51 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incs/ClientData.hpp"
 
-ClientData::ClientData(int fd, struct sockaddr_in a) : sockfd(fd), addr(a) {
+ClientData::ClientData(int fd, struct sockaddr_in a, ServerData &serv) : sockfd(fd), addr(a), server(serv){
 	isReqFinished = false;
+	// std::cout << req.getContentLen() << std::endl;
 	(void) addr;
 }
 
@@ -29,27 +30,18 @@ bool ClientData::readRequest(char *buffer, size_t bytesReceived){
 		req.parsingRequest();
 		return (true);
 	}
+	// exit(1);
 	return (false);
 }
 
-// void ClientData::outputHTTPRequestToFile(const std::string& httpRequest, const std::string& filename) {
-// 	// Open the output file
-// 	std::ofstream outFile(filename);
-// 	if (!outFile.is_open()) {
-// 		std::cerr << "Failed to open file: " << filename << std::endl;
-// 		return;
-// 	}
-// 	// Write the HTTP request string to the file
-// 	outFile << httpRequest;
-// 	outFile.close();
-// }
-
-bool ClientData::sendResponce(std::vector<class ServerData> &servers){
+bool ClientData::sendResponce(){
+	
 	if (isReqFinished){
-		res.generate(req);
+		res.generate(req, server);
 		res.sending(sockfd);
 		req.printFullReq();
 		req.clear();
+		res.clear();
 		isReqFinished = false;
 		return (true);
 	}

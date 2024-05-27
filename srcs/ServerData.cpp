@@ -6,15 +6,15 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:47:10 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 13:01:38 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/23 23:06:53 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incs/ServerData.hpp"
 #include <cstdlib>
 
-ServerData::ServerData(std::string servName, std::string ho, std::vector<int> portss)
-	: serverName(servName), host(ho), ports(portss) {
+ServerData::ServerData(std::string servName, std::string ho, std::vector<int> portss, size_t mbz)
+	: serverName(servName), host(ho), ports(portss), maxBodySize(mbz) {
 	for(unsigned long i = 0; i < ports.size();i++){
 		int fd = socket(AF_INET, SOCK_STREAM, 0);
 		if (fd == -1){
@@ -88,4 +88,8 @@ bool ServerData::isIaSocket(int i){
 		}
 	}
 	return (false);
+}
+
+size_t ServerData::getMaxBodySize(){
+	return (maxBodySize);
 }

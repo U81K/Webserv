@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:04:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/22 11:57:42 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/25 11:03:17 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,15 @@ class request{
 		std::string getHttpV();
 		std::map<std::string, std::string> getHeadersMap();
 		std::string getBodyString();
+		size_t getContentLen(){
+			return (contentLend);
+		}
+		bool isRequestChunked(){
+			return (isChunked);
+		}
+		void setUrl(std::string &newUri){
+			url = newUri;
+		}
 		// void setServer(){
 			
 		// }
