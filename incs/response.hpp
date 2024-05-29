@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/27 16:13:32 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/29 16:58:56 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,8 +132,8 @@ class response{
 		bool isLocation(request &req, ServerData &server){
 			std::string url = parsUri(req.getUrl());
 			// req.setUrl(url);
-			std::cout << url << std::endl;
-			exit(0);
+			// std::cout << url << std::endl;
+			// exit(0);
 			std::vector<Location> locs = server.getLocation();
 			for(unsigned int i = 0; i < locs.size(); i++){
 				if (url.compare(locs[i].path) == 0){

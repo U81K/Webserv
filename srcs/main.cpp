@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/24 19:23:50 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/05/29 17:14:48 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,13 +120,18 @@ int main(int ac, char **av){
 	ports1.push_back(8080);
 	ports1.push_back(8081);
 	ServerData serv1("serv1", "127.0.0.1", ports1, 1024);
-	
-	Location loc1;
-	loc1.path = "/";
-	serv1.addLocation(loc1);
-	Location loc2;
-	loc2.path = "/jj/";
-	serv1.addLocation(loc2);
+	//
+	location lo1("/");
+	lo1.addDirective("return", "/jj/");
+	lo1.addDirective("root", "Sites-available/Server_1");
+	serv1.addLoc(lo1);
+	//
+	// Location loc1;
+	// loc1.path = "/";
+	// serv1.addLocation(loc1);
+	// Location loc2;
+	// loc2.path = "/jj/";
+	// serv1.addLocation(loc2);
 	
 	servers.push_back(serv1);
 	//serv2
