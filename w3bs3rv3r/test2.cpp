@@ -157,7 +157,7 @@ void handleDeleteRequest(int clientSocket, const std::string& path) {
     }
     sendResponse(clientSocket, "200 OK", "text/plain", "File or directory deleted.");
 }
-
+#include<string.h>
 std::string listDirectory(const std::string& path) {
     DIR* dir = opendir(path.c_str());
     if (!dir) {
@@ -167,11 +167,13 @@ std::string listDirectory(const std::string& path) {
     std::ostringstream directoryContent;
     struct dirent* entry;
     while ((entry = readdir(dir)) != NULL) {
-        directoryContent << entry->d_name << "\n";
+        printf("%s", directoryContent.str().c_str());
+        directoryContent << entry->d_name << "\r\n";
     }
     closedir(dir);
     return directoryContent.str();
 }
+
 
 std::string getMimeType(const std::string& path) {
     if (path.find(".html") != std::string::npos) return "text/html";

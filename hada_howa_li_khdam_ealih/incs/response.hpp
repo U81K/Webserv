@@ -148,7 +148,18 @@ class response{
 			return (false);
 		}
 		
+		bool handel_delete(request &req, ServerData &serv){
+			// std::vector<location> locs = serv.getLocs();
+			// std::cout << locs[0].getPath() << std::endl;
+			std::cout << req.getUrl() << std::endl;
+			check
+			exit(0);
+		
+
+			return true;
+		}
 		void generate(request &req, ServerData &serv){
+			handel_delete(req, serv);
 			// servs = servers;
 			// if (isReqWellFormated(req, serv)){
 			// 	if (isLocation(req, serv)){
@@ -188,6 +199,7 @@ class response{
 		const char *responce(){
 			// hna khas tkon responce
 			// genrate httml responce <<
+			return "bad trip";
 		}
 		bool handel_get(){
 			if(!get_resources())
@@ -195,11 +207,7 @@ class response{
 			
 			return(true);
 		}
-		bool handel_delete(){
-		
 
-			return true;
-		}
 		bool handel_post(){
 			return true;
 		}

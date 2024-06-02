@@ -48,6 +48,9 @@ class location{
 				return (it->second);
 			return ("");
 		}
+		std::string getPath() const{
+			return (path);
+		}
 };
 
 class ServerData{
