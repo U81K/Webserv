@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ClientData.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: khaimer <khaimer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:56:38 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/24 16:42:51 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/04 15:33:15 by khaimer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ bool ClientData::readRequest(char *buffer, size_t bytesReceived){
 bool ClientData::sendResponce(){
 	
 	if (isReqFinished){
-		res.generate(req, server);
+		// res.generate(req, server);
 		res.sending(sockfd);
 		req.printFullReq();
 		req.clear();

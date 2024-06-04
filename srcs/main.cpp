@@ -6,7 +6,7 @@
 /*   By: khaimer <khaimer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/04 14:45:50 by khaimer          ###   ########.fr       */
+/*   Updated: 2024/06/04 15:30:16 by khaimer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ int main(int ac, char **av){
 	(void) av;
 	std::vector<ServerData> servers = parseConfigFile("ourconfig.conf");
     printServers(servers);
-	exit(0);
+	// exit(0);
 	///parsing
 	
 	// std::vector<class ServerData> servers;
@@ -240,7 +240,7 @@ int main(int ac, char **av){
 
 	// std::cout << "server start listening on port 8080\n";
 	// // sockets.push_back(serv2.getServSockets());
-	startServer(servers);
+	// startServer(servers);
 	// close(servfd);
 	return (0);
 }

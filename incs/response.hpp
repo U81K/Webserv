@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: khaimer <khaimer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/29 16:58:56 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/04 15:33:03 by khaimer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,51 +129,51 @@ class response{
 			return (res);
 		}
 
-		bool isLocation(request &req, ServerData &server){
-			std::string url = parsUri(req.getUrl());
-			// req.setUrl(url);
-			// std::cout << url << std::endl;
-			// exit(0);
-			std::vector<Location> locs = server.getLocation();
-			for(unsigned int i = 0; i < locs.size(); i++){
-				if (url.compare(locs[i].path) == 0){
-					return (true);
-				}
-			}
-			notFound(req);
-			return (false);
-		}
+		// bool isLocation(request &req, ServerData &server){
+		// 	std::string url = parsUri(req.getUrl());
+		// 	// req.setUrl(url);
+		// 	// std::cout << url << std::endl;
+		// 	// exit(0);
+		// 	std::vector<Location> locs = server.getLocation();
+		// 	for(unsigned int i = 0; i < locs.size(); i++){
+		// 		if (url.compare(locs[i].path) == 0){
+		// 			return (true);
+		// 		}
+		// 	}
+		// 	notFound(req);
+		// 	return (false);
+		// }
 		
 		bool isLocationHaveRedi(request &req, ServerData &server){
 			return (false);
 		}
 		
-		void generate(request &req, ServerData &serv){
-			// servs = servers;
-			if (isReqWellFormated(req, serv)){
-				if (isLocation(req, serv)){
-					//checking if location have redirection
-					// if (isLocationHaveRedi(req, serv)){
+		// void generate(request &req, ServerData &serv){
+		// 	// servs = servers;
+		// 	if (isReqWellFormated(req, serv)){
+		// 		if (isLocation(req, serv)){
+		// 			//checking if location have redirection
+		// 			// if (isLocationHaveRedi(req, serv)){
 						
-					// }
-					// else{
-					// 	statusLine = "HTTP/1.1 200 OK";
-					// 	body = "hello world!";
-					// 	headers["Content-Length"] = "12";
-					// }
-				}
-			}
-			// else{
-				// /checking the location requested
-				// statusLine = "HTTP/1.1 200 OK";
-				// body = "fuck u!";
-				// headers["Content-Length"] = "7";
-			// }
-			// else	////request is not well formated
-			// 	std::cout << "request is not well formated\n";
-			// std::cout << req.getMethod() << std::endl;
-			// std::cout << req.getUrl() << std::endl;
-		}
+		// 			// }
+		// 			// else{
+		// 			// 	statusLine = "HTTP/1.1 200 OK";
+		// 			// 	body = "hello world!";
+		// 			// 	headers["Content-Length"] = "12";
+		// 			// }
+		// 		}
+		// 	}
+		// 	// else{
+		// 		// /checking the location requested
+		// 		// statusLine = "HTTP/1.1 200 OK";
+		// 		// body = "fuck u!";
+		// 		// headers["Content-Length"] = "7";
+		// 	// }
+		// 	// else	////request is not well formated
+		// 	// 	std::cout << "request is not well formated\n";
+		// 	// std::cout << req.getMethod() << std::endl;
+		// 	// std::cout << req.getUrl() << std::endl;
+		// }
 		void sending(int cltFd){
 			std::ostringstream response;
 			response << statusLine << "\r\n";
