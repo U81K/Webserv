@@ -151,15 +151,23 @@ class response{
 		bool handel_delete(request &req, ServerData &serv){
 			// std::vector<location> locs = serv.getLocs();
 			// std::cout << locs[0].getPath() << std::endl;
-			std::cout << req.getUrl() << std::endl;
-			check
-			exit(0);
-		
+			// std::cout << req.getUrl() << std::endl;
+			// check
+			// exit(0);
+			std::cout << "body tring = " <<req.getBodyString() << std::endl;
+			std::cout << "url = "<<req.getUrl() << std::endl;
+			std::cout << "content = " << req.getContentLen() << std::endl;
+			// khasni nchof wach file ola dir 
+			// bad trip :D
+			// std::cout << req.getHeadersMap
 
 			return true;
 		}
 		void generate(request &req, ServerData &serv){
-			handel_delete(req, serv);
+
+
+			
+			
 			// servs = servers;
 			// if (isReqWellFormated(req, serv)){
 			// 	if (isLocation(req, serv)){
@@ -184,7 +192,15 @@ class response{
 			// 	std::cout << "request is not well formated\n";
 			// std::cout << req.getMethod() << std::endl;
 			// std::cout << req.getUrl() << std::endl;
-			statusLine =  "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";;
+			// statusLine =  "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!";;
+			if(req.getMethod() == request::DELETE)
+				handel_delete(req,serv);
+			else if(req.getMethod() == request::POST)
+				std::cout << "baaaaaad trip2" << std::endl;
+			else if(req.getMethod() == request::GET) 	 
+				std::cout << "baaaaaad trip3" << std::endl;
+			else if(req.getMethod() == request::UNKNOWN)
+				std::cout << "baaaaaad trip4" << std::endl;			
 			// status code https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.1
 			
 		}
