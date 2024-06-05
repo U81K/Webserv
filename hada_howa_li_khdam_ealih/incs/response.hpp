@@ -148,8 +148,6 @@ class response{
 		bool isLocationHaveRedi(request &req, ServerData &server){
 			return (false);
 		}
-		
-// 		The stat Structure
 
 // The stat structure contains several fields that hold information about a file. These fields include:
 
@@ -167,10 +165,6 @@ class response{
 //     blksize_t st_blksize: Preferred block size for filesystem I/O.
 //     blkcnt_t st_blocks: Number of 512-byte blocks allocated to the file.
 
-// File Mode and Permissions
-
-// The st_mode field in the stat structure contains information about the file type and the file mode (permissions). The file type can be checked using specific macros:
-
 //     S_ISBLK(m): Checks if the file is a block special file.
 //     S_ISCHR(m): Checks if the file is a character special file.
 //     S_ISDIR(m): Checks if the file is a directory.
@@ -178,10 +172,6 @@ class response{
 //     S_ISREG(m): Checks if the file is a regular file.
 //     S_ISLNK(m): Checks if the file is a symbolic link.
 //     S_ISSOCK(m): Checks if the file is a socket.
-
-// File Mode Bits
-
-// These bits define the read, write, and execute permissions for the file's owner, group, and others:
 
 //     S_IRWXU: Read, write, execute/search by the owner.
 //         S_IRUSR: Read permission for the owner.
@@ -202,98 +192,83 @@ class response{
 //     S_ISGID: Set-group-ID on execution.
 //     S_ISVTX: On directories, it restricts deletion (sticky bit).
 
-// Advanced File Types and Macros
+	// struct dirent ->
+    // d_ino: This field represents the inode number of the file. An inode is a data structure that stores metadata about a file, such as permissions, ownership, and file type.
+    // d_off: The value stored in d_off is the same as the value returned by the telldir function at the current position in the directory stream. It is often used for tracking positions within the directory.
+    // d_reclen: This field indicates the size of the returned record in bytes. It may not match the size of the dirent structure definition, so applications should use the value of d_reclen to determine the size of the record.
+    // d_type: This field contains a value indicating the type of the file. It allows applications to avoid the overhead of calling the lstat function if they only need to perform certain actions based on the file type.
 
-// Some systems may implement advanced file types, such as message queues, semaphores, and shared memory objects. Macros to test these types include:
-
-//     S_TYPEISMQ(buf): Checks if the file is a message queue.
-//     S_TYPEISSEM(buf): Checks if the file is a semaphore.
-//     S_TYPEISSHM(buf): Checks if the file is a shared memory object.
-//     S_TYPEISTMO(buf): Checks if the file is a typed memory object.
-bool delete_directory(const std::string &path) 
-{
-		//https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
-		//https://medium.com/@noransaber685/exploring-directory-operations-opendir-readdir-and-closedir-system-calls-a8fb1b6e67bb
-    DIR *dir = opendir(path.c_str());
-    if (!dir) {
-        std::cerr << "Failed to open directory: " << path << std::endl;
-        return false;
-    }
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != NULL){
-        if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
-            std::string full_path = path + "/" + entry->d_name;
-            struct stat st;//http://codewiki.wikidot.com/c:system-calls:stat
-            if (stat(full_path.c_str(), &st) == 0) {
-                if (S_ISDIR(st.st_mode)) {
-                    if (!delete_directory(full_path)) {
-                        closedir(dir);
-                        return false;
-                    }
-                } else {
-                    if (std::remove(full_path.c_str()) != 0) {
-                        std::cerr << "Failed to remove file: " << full_path << std::endl;
-                        closedir(dir);
-                        return false;
-                    }
-                }
-            }
-        }
-    }
-    closedir(dir);
-    std::remove(path.c_str());
-    return true;
-}
-bool handle_delete(request &req, ServerData &serv)
- {
-    std::string path = "." + req.getUrl();
-    if (delete_directory(path)) {
-        std::remove(path.c_str());
-        statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
-    } else {
-        statusLine = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 21\r\nConnection: close\r\n\r\n bad trip ";
-    }
-    return true;
-}
-	// 	bool delete_diractory(std::string &path){
-
-	// 		DIR *dir = opendir(path.c_str());
-	// 		// std::cout << "dir buf = " << dir->__dd_buf <<std::endl;
-	// 		struct dirent *read_dir;
-	// 		while((read_dir = readdir(dir)) != NULL)
-	// 		{
-	// 			if(strcmp(read_dir->d_name,".") && strcmp(read_dir->d_name,".."))
-	// 			{
-	// 				std::string file;
-	// 				file = path + "/" + read_dir->d_name;
-	// 				std::cout << "filles to remove " << file << std::endl;
-	// 				std::remove(path.c_str());
-	// 			}
-	// 		}
-	// 		return true;
-	// }
-	// 	bool handel_delete(request &req, ServerData &serv){
-	// 		// std::vector<location> locs = serv.getLocs();
-	// 		// std::cout << locs[0].getPath() << std::endl;
-	// 		// std::cout << req.getUrl() << std::endl;
-	// 		// check
-	// 		// exit(0);
-	// 		// std::cout << "body tring = " <<req.getBodyString() << std::endl;
-	// 		// std::cout << "url = "<<req.getUrl() << std::endl;
-	// 		// stat https://www.geeksforgeeks.org/how-to-check-a-file-or-directory-exists-in-cpp/
-
+    // When certain feature test macros are defined (e.g., _DEFAULT_SOURCE or _BSD_SOURCE), additional macro constants are defined by the glibc library to represent the value stored in d_type. These constants include:
+    // DT_BLK: Block device.
+    // DT_CHR: Character device.
+    // DT_DIR: Directory.
+    // DT_FIFO: Named pipe (FIFO).
+    // DT_LNK: Symbolic link.
+    // DT_REG: Regular file.
+    // DT_SOCK: UNIX domain socket.
+    // DT_UNKNOWN: The file type could not be determined.
 			
-	// 		std::string path = "." + req.getUrl();
-	// 		delete_diractory(path);
-	// 		std::remove(path.c_str());
-	// 		statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n bad trip!";
-	// 		// std::cout << "content = " << req.getContentLen() << std::endl;
-	// 		// khasni nchof wach file ola dir 
-	// 		// bad trip :D
-	// 		// std::cout << req.getHeadersMap
-
-	// 		return true;
-	// 	}
+		bool delete_directory(const std::string &path) 
+		{
+			//https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
+			//https://medium.com/@noransaber685/exploring-directory-operations-opendir-readdir-and-closedir-system-calls-a8fb1b6e67bb
+			DIR *dir = opendir(path.c_str());
+			if (!dir) {
+				std::cerr << "Failed to open directory: " << path << std::endl;
+				return false;
+			}
+			struct dirent *entry;
+			while ((entry = readdir(dir)) != NULL){
+				if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+					std::string full_path = path + "/" + entry->d_name;
+					struct stat st;//http://codewiki.wikidot.com/c:system-calls:stat
+					if (stat(full_path.c_str(), &st) == 0) {
+						if (S_ISDIR(st.st_mode)) {
+							if (!delete_directory(full_path)) {
+								closedir(dir);
+								return false;
+							}
+						} else {
+							if (std::remove(full_path.c_str()) != 0) {
+								std::cerr << "Failed to remove file: " << full_path << std::endl;
+								closedir(dir);
+								return false;
+							}
+						}
+					}
+				}
+			}
+			closedir(dir);
+			std::remove(path.c_str());
+			return true;
+		}
+		bool handle_delete(request &req, ServerData &serv)
+		{
+			std::cout << "handel delete" << std::endl;
+			std::string path = "." + req.getUrl();
+			struct stat object_stat;
+			if(stat(path.c_str(),&object_stat) != 0)
+			{
+				//err
+				std::cout << "zz" << std::endl;
+				return false;
+			}
+			if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
+			{
+				if (delete_directory(path)) {
+					statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
+				} else {
+					statusLine = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 21\r\nConnection: close\r\n\r\n bad trip !";
+				}
+			}
+			else
+			{
+				std::remove(path.c_str());
+				std::cout << "zeb" << std::endl;
+				statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
+			}
+			return true;
+		}
 		void generate(request &req, ServerData &serv){
 
 
@@ -327,9 +302,9 @@ bool handle_delete(request &req, ServerData &serv)
 			if(req.getMethod() == request::DELETE)
 				handle_delete(req,serv);
 			else if(req.getMethod() == request::POST)
-				std::cout << "baaaaaad trip2" << std::endl;
+				handel_post();
 			else if(req.getMethod() == request::GET) 	 
-				std::cout << "baaaaaad trip3" << std::endl;
+				handel_get();
 			else if(req.getMethod() == request::UNKNOWN)
 				std::cout << "baaaaaad trip4" << std::endl;			
 			// status code https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.1
