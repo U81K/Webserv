@@ -249,13 +249,10 @@ class response{
 			std::string path = "." + req.getUrl();
 			struct stat object_stat;
 			if(stat(path.c_str(),&object_stat) != 0)
-			{
-				//err
-				std::cout << "zz" << std::endl;
-				return false;
-			}
+				notFound(req);
 			if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
 			{
+				// hna khasni nchecky permissions 
 				if (delete_directory(path)) {
 					statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
 				} else {
