@@ -268,11 +268,28 @@ class response{
 			}
 			return true;
 		}
+bool list_directory(std::string &dir_path) {
+    DIR *dir = opendir(dir_path.c_str());
+    if (dir == nullptr) {
+        return false;
+    }
+    struct dirent *output;
+
+    statusLine = "<html>\n<head>\n<title>Index of " + dir_path + "</title>\n</head>\n<body>\n<h1>Index of " + dir_path + "</h1>\n<ul>\n";
+    statusLine += "<li><a href=\"../\">Parent Directory</a></li>\n";
+    while ((output = readdir(dir)) != NULL) {
+        std::string name = output->d_name;
+        if (name == "." || name == "..") {
+            continue;
+        }
+        statusLine += "<li><a href=\"" + name + "\">" + name + "</a></li>\n";
+    }
+    closedir(dir);
+    statusLine += "</ul>\n</body>\n</html>";
+
+    return true;
+}
 		void generate(request &req, ServerData &serv){
-
-
-			
-			
 			// servs = servers;
 			// if (isReqWellFormated(req, serv)){
 			// 	if (isLocation(req, serv)){
@@ -303,7 +320,7 @@ class response{
 			else if(req.getMethod() == request::POST)
 				handel_post();
 			else if(req.getMethod() == request::GET) 	 
-				handel_get();
+				handel_get(req,serv);
 			else if(req.getMethod() == request::UNKNOWN)
 				std::cout << "baaaaaad trip4" << std::endl;			
 			// status code https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.1
@@ -314,8 +331,6 @@ class response{
 		{
 			//  ia makanch l file fe root err 
 			std::string root = "";
-			 
-
 			return true;
 		}
 		const char *responce(){
@@ -323,10 +338,12 @@ class response{
 			// genrate httml responce <<
 			return "bad trip";
 		}
-		bool handel_get(){
+		bool handel_get(request &req, ServerData &serv){
+
 			if(!get_resources())
-				return false;
-			
+				notFound(req);
+			std::string file = "." + req.getUrl();
+			list_directory(file);
 			return(true);
 		}
 
