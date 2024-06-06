@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/27 16:13:32 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/06 15:12:48 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,6 +116,7 @@ class response{
 			statusLine = req.getHttpV() + " 404 not found";
 			body = readFromFile("./pages/404.html");
 			headers["Content-Length"] = std::to_string(body.size());
+			// std::exit(0);
 		}
 
 		std::string parsUri(const std::string &uri){
@@ -250,7 +251,7 @@ class response{
 			struct stat object_stat;
 			if(stat(path.c_str(),&object_stat) != 0)
 				notFound(req);
-			if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
+			else if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
 			{
 				// hna khasni nchecky permissions 
 				if (delete_directory(path)) {
