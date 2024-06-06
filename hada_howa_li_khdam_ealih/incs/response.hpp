@@ -208,6 +208,7 @@ class response{
     // DT_SOCK: UNIX domain socket.
     // DT_UNKNOWN: The file type could not be determined.
 			
+			//POSIX https://medium.com/@cloud.devops.enthusiast/posix-59d0ee68b498	
 		bool delete_directory(const std::string &path) 
 		{
 			//https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
@@ -219,7 +220,7 @@ class response{
 			}
 			struct dirent *entry;
 			while ((entry = readdir(dir)) != NULL){
-				if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+				if (std::strcmp(entry->d_name, ".") && std::strcmp(entry->d_name, "..")) {
 					std::string full_path = path + "/" + entry->d_name;
 					struct stat st;//http://codewiki.wikidot.com/c:system-calls:stat
 					if (stat(full_path.c_str(), &st) == 0) {
