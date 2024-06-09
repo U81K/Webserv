@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/29 16:58:56 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/09 23:36:12 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,9 @@
 #include <map>
 #include "../incs/request.hpp"
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include "ServerData.hpp"
+#include <dirent.h>
 
 class response{
 	private:
@@ -116,27 +118,29 @@ class response{
 			body = readFromFile("./pages/404.html");
 			headers["Content-Length"] = std::to_string(body.size());
 		}
-
-		std::string parsUri(const std::string &uri){
+		
+		std::string getLocation(const std::string &uri){
+			if (uri.size() == 1 && uri.compare("/") == 0){
+				return (uri);
+			}
 			std::string res;
-			unsigned int i = uri.size() - 1;
-			for(; i != 0; i--){
-				if (uri.at(i) != '/')
+			unsigned int i = 1;
+			for (; i < uri.size(); i++){
+				if (uri.at(i) == '/')
 					break;
 			}
-			res = uri.substr(0, i + 1);
-			res.append("/");
+			res = uri.substr(0, i);
+			if (res.size() > 1)
+				res.append("/");
 			return (res);
 		}
 
 		bool isLocation(request &req, ServerData &server){
-			std::string url = parsUri(req.getUrl());
-			// req.setUrl(url);
+			std::string url = getLocation(req.getUrl());
 			// std::cout << url << std::endl;
-			// exit(0);
-			std::vector<Location> locs = server.getLocation();
+			std::vector<location> locs = server.getLocs();
 			for(unsigned int i = 0; i < locs.size(); i++){
-				if (url.compare(locs[i].path) == 0){
+				if (url.compare(locs[i].getPath()) == 0){
 					return (true);
 				}
 			}
@@ -144,36 +148,168 @@ class response{
 			return (false);
 		}
 		
-		bool isLocationHaveRedi(request &req, ServerData &server){
+		bool isLocationHaveRedi(location loc){
+			std::string dir = loc.getDirective("return");
+			if (dir.size() > 0){
+				statusLine = "HTTP/1.1 301 Moved Permanently";
+				headers["Location"] = dir;
+				return (true);
+			}
 			return (false);
 		}
 		
-		void generate(request &req, ServerData &serv){
-			// servs = servers;
-			if (isReqWellFormated(req, serv)){
-				if (isLocation(req, serv)){
-					//checking if location have redirection
-					// if (isLocationHaveRedi(req, serv)){
-						
-					// }
-					// else{
-					// 	statusLine = "HTTP/1.1 200 OK";
-					// 	body = "hello world!";
-					// 	headers["Content-Length"] = "12";
-					// }
+		location getLoc(request &req, ServerData &server){
+			std::string url = getLocation(req.getUrl());
+			std::vector<location> locs = server.getLocs();
+			for(unsigned int i = 0; i < locs.size(); i++){
+				if (url.compare(locs[i].getPath()) == 0){
+					return (locs[i]);
 				}
 			}
-			// else{
-				// /checking the location requested
-				// statusLine = "HTTP/1.1 200 OK";
-				// body = "fuck u!";
-				// headers["Content-Length"] = "7";
-			// }
-			// else	////request is not well formated
-			// 	std::cout << "request is not well formated\n";
-			// std::cout << req.getMethod() << std::endl;
-			// std::cout << req.getUrl() << std::endl;
+			return (location());
 		}
+		
+		bool isMethodAllowed(request &req, location loc){
+			std::string method;
+			if (req.getMethod() == 0)
+				method = "GET";
+			else if (req.getMethod() == 1)
+				method = "POST";
+			else if (req.getMethod() == 2)
+				method = "DELETE";
+			else if (req.getMethod() == 3)
+				method = "UNKNOWN";
+			std::string allowedMethods = loc.getDirective("acceptedMethods");
+			if ((allowedMethods.find(method) != std::string::npos)){
+				return (true);
+			}
+			statusLine = "HTTP/1.1 405 Method Not Allowed";
+			body = "method not allowed";
+			headers["Content-Length"] = "18";
+			return (false);
+		}
+		
+		bool delete_directory(const std::string &path) 
+		{
+			//https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
+			//https://medium.com/@noransaber685/exploring-directory-operations-opendir-readdir-and-closedir-system-calls-a8fb1b6e67bb
+			DIR *dir = opendir(path.c_str());
+			if (!dir) {
+				std::cerr << "Failed to open directory: " << path << std::endl;
+				return false;
+			}
+			struct dirent *entry;
+			while ((entry = readdir(dir)) != NULL){
+				if (std::strcmp(entry->d_name, ".") && std::strcmp(entry->d_name, "..")) {
+					std::string full_path = path + "/" + entry->d_name;
+					struct stat st;//http://codewiki.wikidot.com/c:system-calls:stat
+					if (stat(full_path.c_str(), &st) == 0) {
+						if (S_ISDIR(st.st_mode)) {
+							if (!delete_directory(full_path)) {
+								closedir(dir);
+								return false;
+							}
+						} else {
+							if (std::remove(full_path.c_str()) != 0) {
+								std::cerr << "Failed to remove file: " << full_path << std::endl;
+								closedir(dir);
+								return false;
+							}
+						}
+					}
+				}
+			}
+			closedir(dir);
+			std::remove(path.c_str());
+			return true;
+		}
+		
+		bool handle_delete(request &req, ServerData &serv)
+		{
+			(void) serv;
+			std::cout << "handel delete" << std::endl;
+			std::string path = "." + req.getUrl();
+			struct stat object_stat;
+			// object_stat.
+			if(stat(path.c_str(),&object_stat) != 0)
+				notFound(req);
+			else if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
+			{
+				// hna khasni nchecky permissions 
+				if (delete_directory(path)) {
+					statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
+				} else {
+					statusLine = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 21\r\nConnection: close\r\n\r\n bad trip !";
+				}
+			}
+			else
+			{
+				std::remove(path.c_str());
+				std::cout << "zeb" << std::endl;
+				statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
+			}
+			return true;
+		}
+		
+		bool list_directory(std::string &dir_path) {
+			DIR *dir = opendir(dir_path.c_str());
+			if (dir == nullptr) {
+				return false;
+			}
+			struct dirent *output;
+			while ((output = readdir(dir)) != NULL) {
+				std::string name = output->d_name;
+				if (name == "." || name == "..") {
+					continue;
+				}
+				statusLine += "<li><a href=\"" + name + "\">" + name + "\n";
+			}
+			closedir(dir);
+			statusLine += "</ul>\n</body>\n</html>";
+
+			std::cout << statusLine << std::endl;
+			return true;
+		}
+		
+		bool get_resources()
+		{
+			//  ia makanch l file fe root err 
+			std::string root = "";
+			return true;
+		}
+		
+		bool handel_get(request &req, ServerData &serv){
+			(void) serv;
+			if(!get_resources())
+				notFound(req);
+			std::string file = "." + req.getUrl();
+			list_directory(file);
+			return(true);
+		}
+
+		void generate(request &req, ServerData &serv){
+			if (isReqWellFormated(req, serv)){
+				if (isLocation(req, serv)){
+					location loc = getLoc(req, serv);
+					if (!isLocationHaveRedi(loc)){
+						if (isMethodAllowed(req, loc)){
+							statusLine = "HTTP/1.1 200 OK";
+							body = "hello world!";
+							headers["Content-Length"] = "12";
+							// if(req.getMethod() == request::DELETE)
+							// 	handle_delete(req,serv);
+							// else if(req.getMethod() == request::GET){
+							// 	handel_get(req,serv);
+							// else if(req.getMethod() == request::POST)
+							// 	handel_post();
+								// exit(0);
+							// }
+						}
+					}
+				}
+			}
+		}
+		
 		void sending(int cltFd){
 			std::ostringstream response;
 			response << statusLine << "\r\n";

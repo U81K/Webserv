@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/29 17:14:48 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/09 10:33:49 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,9 @@ bool isFdOfServers(int fd, std::vector<class ServerData> &servers){
 }
 
 ServerData getServerData(int fd, std::vector<class ServerData> &servers){
-	for(int i = 0; i < servers.size(); i++){
+	for(unsigned int i = 0; i < servers.size(); i++){
 		std::vector<int> tmp = servers[i].getServSockets();
-		for (int j = 0; j < tmp.size(); j++){
+		for (unsigned int j = 0; j < tmp.size(); j++){
 			if (fd == tmp[j])
 				return (servers[i]);
 		}
@@ -122,10 +122,13 @@ int main(int ac, char **av){
 	ServerData serv1("serv1", "127.0.0.1", ports1, 1024);
 	//
 	location lo1("/");
-	lo1.addDirective("return", "/jj/");
 	lo1.addDirective("root", "Sites-available/Server_1");
+	lo1.addDirective("acceptedMethods", "POST,GET");
 	serv1.addLoc(lo1);
 	//
+	location lo2("/jj/");
+	lo2.addDirective("return", "/");
+	serv1.addLoc(lo2);
 	// Location loc1;
 	// loc1.path = "/";
 	// serv1.addLocation(loc1);
