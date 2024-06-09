@@ -274,19 +274,17 @@ bool list_directory(std::string &dir_path) {
         return false;
     }
     struct dirent *output;
-
-    statusLine = "<html>\n<head>\n<title>Index of " + dir_path + "</title>\n</head>\n<body>\n<h1>Index of " + dir_path + "</h1>\n<ul>\n";
-    statusLine += "<li><a href=\"../\">Parent Directory</a></li>\n";
     while ((output = readdir(dir)) != NULL) {
         std::string name = output->d_name;
         if (name == "." || name == "..") {
             continue;
         }
-        statusLine += "<li><a href=\"" + name + "\">" + name + "</a></li>\n";
+        statusLine += "<li><a href=\"" + name + "\">" + name + "\n";
     }
     closedir(dir);
     statusLine += "</ul>\n</body>\n</html>";
 
+	std::cout << statusLine << std::endl;
     return true;
 }
 		void generate(request &req, ServerData &serv){
@@ -320,7 +318,10 @@ bool list_directory(std::string &dir_path) {
 			else if(req.getMethod() == request::POST)
 				handel_post();
 			else if(req.getMethod() == request::GET) 	 
+			{
 				handel_get(req,serv);
+				// exit(0);
+			}
 			else if(req.getMethod() == request::UNKNOWN)
 				std::cout << "baaaaaad trip4" << std::endl;			
 			// status code https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.1
@@ -359,8 +360,13 @@ bool list_directory(std::string &dir_path) {
        		}
 			response << "\r\n";
 			response << body;
-			std::string res = response.str();
+			std::string res = "HTTP/1.1 200 OK\r\n"
+								"\r\n";
+			// std::cout << res<<std::endl;
+			// exit(0);
+			// std::string res  = ;
 			send(cltFd, res.c_str(), res.size(), 0);
+;
 		}
 };
 

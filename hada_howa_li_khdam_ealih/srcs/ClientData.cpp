@@ -43,6 +43,7 @@ bool ClientData::sendResponce(){
 		req.clear();
 		res.clear();
 		isReqFinished = false;
+		// exit(0);
 		return (true);
 	}
 	return (false);
