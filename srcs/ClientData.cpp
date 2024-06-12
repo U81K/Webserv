@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:56:38 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/09 12:37:46 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/10 19:40:03 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ bool ClientData::sendResponce(){
 	if (isReqFinished){
 		res.generate(req, server);
 		res.sending(sockfd);
-		req.printFullReq();
+		// req.printFullReq();
 		req.clear();
 		res.clear();
 		isReqFinished = false;

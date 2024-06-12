@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/09 10:33:49 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/10 21:32:31 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,6 +124,7 @@ int main(int ac, char **av){
 	location lo1("/");
 	lo1.addDirective("root", "Sites-available/Server_1");
 	lo1.addDirective("acceptedMethods", "POST,GET");
+	lo1.addDirective("upload_path", "Sites-available/Server_1/Uploads");
 	serv1.addLoc(lo1);
 	//
 	location lo2("/jj/");

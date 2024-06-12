@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/09 23:36:12 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/10 21:34:03 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -287,15 +287,27 @@ class response{
 			return(true);
 		}
 
+		void handlePost(request &req, location loc){
+			(void) req;
+			if ((loc.getDirective("upload_path")).size() > 0){ // location support upload
+				// std::cout << loc.getDirective("upload_path") << std::endl;
+			}
+		}
+		
 		void generate(request &req, ServerData &serv){
 			if (isReqWellFormated(req, serv)){
 				if (isLocation(req, serv)){
 					location loc = getLoc(req, serv);
 					if (!isLocationHaveRedi(loc)){
 						if (isMethodAllowed(req, loc)){
-							statusLine = "HTTP/1.1 200 OK";
-							body = "hello world!";
-							headers["Content-Length"] = "12";
+							// std::cout << req.getBodyString() << std::endl;
+							if (req.getMethod() == 1)
+								handlePost(req, loc);
+							else{
+								statusLine = "HTTP/1.1 200 OK";
+								body = "hello world!";
+								headers["Content-Length"] = "12";
+							}
 							// if(req.getMethod() == request::DELETE)
 							// 	handle_delete(req,serv);
 							// else if(req.getMethod() == request::GET){

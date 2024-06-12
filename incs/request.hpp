@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:04:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/25 11:03:17 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/12 15:52:02 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@
 #include <netinet/in.h>
 #include <map>
 // #include "ServerData.hpp"
-
 class request{
 	public:
 		enum Method {
