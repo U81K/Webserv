@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:04:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/12 15:52:02 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/13 18:37:36 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,12 @@ class request{
 		}
 		void setUrl(std::string &newUri){
 			url = newUri;
+		}
+		std::string getBound(){
+			return (boundary);
+		}
+		bool isboundaryFound(){
+			return (boundaryFound);
 		}
 		// void setServer(){
 			

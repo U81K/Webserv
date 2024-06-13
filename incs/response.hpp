@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/10 21:34:03 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/13 19:19:17 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,11 +286,59 @@ class response{
 			list_directory(file);
 			return(true);
 		}
+		
+		std::string getFileName(request &req){
+			std::string ret = "random";
+			size_t fnPos = (req.getBodyString()).find("filename=");
+			if (req.isboundaryFound()){
+				if (fnPos != std::string::npos){
+					std::string ret = (req.getBodyString()).substr(fnPos + 10);
+					unsigned int i = 0;
+					for (; i < ret.size(); i++){
+						if (ret.at(i) == '\"')
+							break;
+					}
+					ret = ret.substr(0, i);
+					return (ret);
+				}
+			}
+			return (ret);
+		}
+		
+		std::string getBodyWitoutBound(request &req){
+			std::string ret;
+			if (req.isboundaryFound()){
+				std::string FullBodyString = req.getBodyString();
+				std::string boundary = FullBodyString.substr(0, FullBodyString.find("\r\n"));
+				size_t contentStart = FullBodyString.find("\r\n\r\n") + 4;
+				ret = FullBodyString.substr(contentStart);
+				if (ret.find(boundary) != std::string::npos){
+					ret = ret.substr(0, ret.find(boundary));
+				}
+				return (ret);
+			}
+			return (req.getBodyString());	
+		}
 
 		void handlePost(request &req, location loc){
-			(void) req;
-			if ((loc.getDirective("upload_path")).size() > 0){ // location support upload
-				// std::cout << loc.getDirective("upload_path") << std::endl;
+			if ((loc.getDirective("upload_path")).size() > 0){ //location support upload
+				// get the file name
+				std::string fName = getFileName(req);
+				// get the clean body
+				std::string bodyWitoutBound;
+				bodyWitoutBound = getBodyWitoutBound(req);
+				// output the file
+				std::ofstream file(loc.getDirective("upload_path") + "/" + fName, std::ios::binary);
+				if (!file.is_open()) {
+				    std::cerr << "Failed to open file: " << loc.getDirective("upload_path") + "/" + fName << std::endl;
+				    return;
+				}
+				file.write(bodyWitoutBound.data(), bodyWitoutBound.size());
+				file.close();
+				statusLine = "HTTP/1.1 201 Created";
+				headers["Location"] = loc.getDirective("upload_path") + "/" + fName;
+				headers["Content-Length"] = "30";
+				body = "Resource successfully created.";
 			}
 		}
 		

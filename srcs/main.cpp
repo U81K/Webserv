@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/10 21:32:31 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/13 18:50:10 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ int main(int ac, char **av){
 	std::vector<int> ports1;
 	ports1.push_back(8080);
 	ports1.push_back(8081);
-	ServerData serv1("serv1", "127.0.0.1", ports1, 1024);
+	ServerData serv1("serv1", "127.0.0.1", ports1, 10000000);
 	//
 	location lo1("/");
 	lo1.addDirective("root", "Sites-available/Server_1");
