@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/13 19:19:17 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/14 19:36:08 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class response{
 			std::ifstream file(filePath);
 			if (!file.is_open()){
 				std::cerr << "unable to open the file: " << filePath << std::endl;
+				return ("");
 			}
 			std::ostringstream ss;
 			ss << file.rdbuf();
@@ -342,6 +343,27 @@ class response{
 			}
 		}
 		
+		void handleGet(request &req, location loc){
+			// (void) loc;
+			// (void) req;
+			// std::cout << readFromFile("/test") << std::endl;
+			// std::cout << loc.getDirective("root") << std::endl;
+			// std::cout << req.getUrl() << std::endl;
+			std::string fullPath = loc.getDirective("root") + req.getUrl();
+			std::string fileContent = readFromFile(fullPath);
+			std::cout << "fullPath= " << fullPath << std::endl;
+			if (fileContent.empty()){
+				statusLine = "HTTP/1.1 404 Not Found";
+				headers["Content-Length"] = "13";
+				body = "404 Not Found";
+				return;
+			}
+			statusLine = "HTTP/1.1 200 OK";
+			body = fileContent;
+			headers["Content-Length"] = fileContent.size();
+			// req.printFullReq();
+		}
+		
 		void generate(request &req, ServerData &serv){
 			if (isReqWellFormated(req, serv)){
 				if (isLocation(req, serv)){
@@ -351,6 +373,8 @@ class response{
 							// std::cout << req.getBodyString() << std::endl;
 							if (req.getMethod() == 1)
 								handlePost(req, loc);
+							else if (req.getMethod() == 0)
+								handleGet(req, loc);
 							else{
 								statusLine = "HTTP/1.1 200 OK";
 								body = "hello world!";
