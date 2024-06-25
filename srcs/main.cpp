@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/13 18:50:10 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/20 03:37:52 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,10 +125,14 @@ int main(int ac, char **av){
 	lo1.addDirective("root", "Sites-available/Server_1");
 	lo1.addDirective("acceptedMethods", "POST,GET");
 	lo1.addDirective("upload_path", "Sites-available/Server_1/Uploads");
+	lo1.addDirective("autoIndex", "on");
 	serv1.addLoc(lo1);
 	//
-	location lo2("/jj/");
-	lo2.addDirective("return", "/");
+	location lo2("/dir/");
+	lo2.addDirective("acceptedMethods", "POST,GET");
+	lo2.addDirective("root", "Sites-available/Server_1/dir");
+	lo2.addDirective("autoIndex", "off");
+	// lo2.addDirective("return", "/");	
 	serv1.addLoc(lo2);
 	// Location loc1;
 	// loc1.path = "/";

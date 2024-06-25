@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/14 19:36:08 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/25 12:05:31 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include "ServerData.hpp"
 #include <dirent.h>
+#include <algorithm>
 
 class response{
 	private:
@@ -130,7 +131,11 @@ class response{
 				if (uri.at(i) == '/')
 					break;
 			}
-			res = uri.substr(0, i);
+			if (i == uri.size())
+				return ("/");
+			if (uri.at(i) == '/'){
+				res = uri.substr(0, i);
+			}
 			if (res.size() > 1)
 				res.append("/");
 			return (res);
@@ -190,103 +195,103 @@ class response{
 			return (false);
 		}
 		
-		bool delete_directory(const std::string &path) 
-		{
-			//https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
-			//https://medium.com/@noransaber685/exploring-directory-operations-opendir-readdir-and-closedir-system-calls-a8fb1b6e67bb
-			DIR *dir = opendir(path.c_str());
-			if (!dir) {
-				std::cerr << "Failed to open directory: " << path << std::endl;
-				return false;
-			}
-			struct dirent *entry;
-			while ((entry = readdir(dir)) != NULL){
-				if (std::strcmp(entry->d_name, ".") && std::strcmp(entry->d_name, "..")) {
-					std::string full_path = path + "/" + entry->d_name;
-					struct stat st;//http://codewiki.wikidot.com/c:system-calls:stat
-					if (stat(full_path.c_str(), &st) == 0) {
-						if (S_ISDIR(st.st_mode)) {
-							if (!delete_directory(full_path)) {
-								closedir(dir);
-								return false;
-							}
-						} else {
-							if (std::remove(full_path.c_str()) != 0) {
-								std::cerr << "Failed to remove file: " << full_path << std::endl;
-								closedir(dir);
-								return false;
-							}
-						}
-					}
-				}
-			}
-			closedir(dir);
-			std::remove(path.c_str());
-			return true;
-		}
+		// bool delete_directory(const std::string &path) 
+		// {
+		// 	//https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
+		// 	//https://medium.com/@noransaber685/exploring-directory-operations-opendir-readdir-and-closedir-system-calls-a8fb1b6e67bb
+		// 	DIR *dir = opendir(path.c_str());
+		// 	if (!dir) {
+		// 		std::cerr << "Failed to open directory: " << path << std::endl;
+		// 		return false;
+		// 	}
+		// 	struct dirent *entry;
+		// 	while ((entry = readdir(dir)) != NULL){
+		// 		if (std::strcmp(entry->d_name, ".") && std::strcmp(entry->d_name, "..")) {
+		// 			std::string full_path = path + "/" + entry->d_name;
+		// 			struct stat st;//http://codewiki.wikidot.com/c:system-calls:stat
+		// 			if (stat(full_path.c_str(), &st) == 0) {
+		// 				if (S_ISDIR(st.st_mode)) {
+		// 					if (!delete_directory(full_path)) {
+		// 						closedir(dir);
+		// 						return false;
+		// 					}
+		// 				} else {
+		// 					if (std::remove(full_path.c_str()) != 0) {
+		// 						std::cerr << "Failed to remove file: " << full_path << std::endl;
+		// 						closedir(dir);
+		// 						return false;
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// 	closedir(dir);
+		// 	std::remove(path.c_str());
+		// 	return true;
+		// }
 		
-		bool handle_delete(request &req, ServerData &serv)
-		{
-			(void) serv;
-			std::cout << "handel delete" << std::endl;
-			std::string path = "." + req.getUrl();
-			struct stat object_stat;
-			// object_stat.
-			if(stat(path.c_str(),&object_stat) != 0)
-				notFound(req);
-			else if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
-			{
-				// hna khasni nchecky permissions 
-				if (delete_directory(path)) {
-					statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
-				} else {
-					statusLine = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 21\r\nConnection: close\r\n\r\n bad trip !";
-				}
-			}
-			else
-			{
-				std::remove(path.c_str());
-				std::cout << "zeb" << std::endl;
-				statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
-			}
-			return true;
-		}
+		// bool handle_delete(request &req, ServerData &serv)
+		// {
+		// 	(void) serv;
+		// 	std::cout << "handel delete" << std::endl;
+		// 	std::string path = "." + req.getUrl();
+		// 	struct stat object_stat;
+		// 	// object_stat.
+		// 	if(stat(path.c_str(),&object_stat) != 0)
+		// 		notFound(req);
+		// 	else if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
+		// 	{
+		// 		// hna khasni nchecky permissions 
+		// 		if (delete_directory(path)) {
+		// 			statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
+		// 		} else {
+		// 			statusLine = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 21\r\nConnection: close\r\n\r\n bad trip !";
+		// 		}
+		// 	}
+		// 	else
+		// 	{
+		// 		std::remove(path.c_str());
+		// 		std::cout << "zeb" << std::endl;
+		// 		statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
+		// 	}
+		// 	return true;
+		// }
 		
-		bool list_directory(std::string &dir_path) {
-			DIR *dir = opendir(dir_path.c_str());
-			if (dir == nullptr) {
-				return false;
-			}
-			struct dirent *output;
-			while ((output = readdir(dir)) != NULL) {
-				std::string name = output->d_name;
-				if (name == "." || name == "..") {
-					continue;
-				}
-				statusLine += "<li><a href=\"" + name + "\">" + name + "\n";
-			}
-			closedir(dir);
-			statusLine += "</ul>\n</body>\n</html>";
+		// bool list_directory(std::string &dir_path) {
+		// 	DIR *dir = opendir(dir_path.c_str());
+		// 	if (dir == nullptr) {
+		// 		return false;
+		// 	}
+		// 	struct dirent *output;
+		// 	while ((output = readdir(dir)) != NULL) {
+		// 		std::string name = output->d_name;
+		// 		if (name == "." || name == "..") {
+		// 			continue;
+		// 		}
+		// 		statusLine += "<li><a href=\"" + name + "\">" + name + "\n";
+		// 	}
+		// 	closedir(dir);
+		// 	statusLine += "</ul>\n</body>\n</html>";
 
-			std::cout << statusLine << std::endl;
-			return true;
-		}
+		// 	std::cout << statusLine << std::endl;
+		// 	return true;
+		// }
 		
-		bool get_resources()
-		{
-			//  ia makanch l file fe root err 
-			std::string root = "";
-			return true;
-		}
+		// bool get_resources()
+		// {
+		// 	//  ia makanch l file fe root err 
+		// 	std::string root = "";
+		// 	return true;
+		// }
 		
-		bool handel_get(request &req, ServerData &serv){
-			(void) serv;
-			if(!get_resources())
-				notFound(req);
-			std::string file = "." + req.getUrl();
-			list_directory(file);
-			return(true);
-		}
+		// bool handel_get(request &req, ServerData &serv){
+		// 	(void) serv;
+		// 	if(!get_resources())
+		// 		notFound(req);
+		// 	std::string file = "." + req.getUrl();
+		// 	list_directory(file);
+		// 	return(true);
+		// }
 		
 		std::string getFileName(request &req){
 			std::string ret = "random";
@@ -321,6 +326,75 @@ class response{
 			return (req.getBodyString());	
 		}
 
+		
+		bool getResourceType(std::string path){ // return 1 for dir 0 for a file
+			struct stat statbuf;
+			
+			if (stat(path.c_str(), &statbuf) != 0)
+				std::cout << path << " does not exist." << std::endl;
+			else {
+				if (S_ISDIR(statbuf.st_mode))
+					std::cout << path << " is a directory." << std::endl;
+				else if (S_ISREG(statbuf.st_mode))
+					std::cout << path << " is a file." << std::endl;
+				else
+					std::cout << path << " is neither a file nor a directory." << std::endl;
+			}
+			return (0);
+		}
+		
+		bool	isFile(std::string filePath){
+			struct stat statBuf;
+
+			if (stat(filePath.c_str(), &statBuf) != 0)
+        		return false;
+    		return S_ISREG(statBuf.st_mode);
+		}	
+		
+		std::string removeLoc(request &req, location loc){
+			unsigned int i = 1;
+			
+			std::string fullUri = req.getUrl();
+			for (; i < fullUri.size(); i++){
+				if (fullUri.at(i) == '/')
+					break;
+			}
+			std::string res;
+			if (i == fullUri.size())
+				res = fullUri;
+			else
+				res = fullUri.substr(i, fullUri.size());
+			return (res);
+		}
+		
+		std::string generateDirectoryListing(const std::string& directoryPath) {
+   			std::vector<std::string> files;
+			DIR* dir = opendir(directoryPath.c_str());
+			if (dir == NULL) {
+				return "";
+			}
+
+			struct dirent* entry;
+			while ((entry = readdir(dir)) != NULL) {
+				std::string filename = entry->d_name;
+				if (filename != "." && filename != "..") {
+					files.push_back(filename);
+				}
+			}
+			closedir(dir);
+
+			std::sort(files.begin(), files.end());
+
+			std::stringstream listing;
+			listing << "<html><head><title>Index of " << directoryPath << "</title></head><body>";
+			listing << "<h1>Index of " << directoryPath << "</h1><ul>";
+			for (const std::string& file : files) {
+				listing << "<li><a href=\"" << file << "\">" << file << "</a></li>";
+			}
+			listing << "</ul></body></html>";
+			return (listing.str());
+		}
+		
 		void handlePost(request &req, location loc){
 			if ((loc.getDirective("upload_path")).size() > 0){ //location support upload
 				// get the file name
@@ -341,27 +415,114 @@ class response{
 				headers["Content-Length"] = "30";
 				body = "Resource successfully created.";
 			}
+			else{
+				std::string fullPath = loc.getDirective("root") + removeLoc(req, loc);
+				struct stat statbuf;
+				// std::string fileContent;
+				
+				std::cout << fullPath << std::endl;
+				if (stat(fullPath.c_str(), &statbuf) != 0){//does not exist
+					statusLine = "HTTP/1.1 404 Not Found";
+					headers["Content-Length"] = "30";
+					body = "404 Not Found from handle post";
+				}
+				else {
+					if (S_ISDIR(statbuf.st_mode)){//is a directory
+						//check if the path end with "/"
+						if (fullPath.at(fullPath.size() - 1) == '/'){
+							//checking if dir has index file
+							std::string indexPath = fullPath + "/index.html";
+							if (isFile(indexPath)){
+								bool isLocationHasCgi = false;
+								if (isLocationHasCgi){
+									//run cgi on the requested file
+								}
+								else{
+									statusLine = "HTTP/1.1 403 Forbidden";
+									body  = "Directory listing is not allowed.";
+									headers["Content-Length"] = "33";
+								}
+							}
+							else {
+								statusLine = "HTTP/1.1 403 Forbidden";
+								body  = "Directory listing is not allowed.";
+								headers["Content-Length"] = "33";
+							}
+						}
+						else{
+							statusLine = "HTTP/1.1 301 Moved Permanently";
+							headers["Location"] = req.getUrl() + "/";
+							body = "Moved Permanently";
+							headers["Content-Length"] = "17";
+						}
+					}
+					else if (S_ISREG(statbuf.st_mode)){//is a file.
+						bool isLocationHasCgi = false;
+						if (isLocationHasCgi){
+							//run cgi on the requested file
+						}
+						else{
+							statusLine = "HTTP/1.1 403 Forbidden";
+							body = "Forbidden";
+							headers["Content-Length"] = "9";
+						}
+					}
+				}
+			}
 		}
 		
 		void handleGet(request &req, location loc){
-			// (void) loc;
-			// (void) req;
-			// std::cout << readFromFile("/test") << std::endl;
-			// std::cout << loc.getDirective("root") << std::endl;
-			// std::cout << req.getUrl() << std::endl;
-			std::string fullPath = loc.getDirective("root") + req.getUrl();
-			std::string fileContent = readFromFile(fullPath);
-			std::cout << "fullPath= " << fullPath << std::endl;
-			if (fileContent.empty()){
+			std::string fullPath = loc.getDirective("root") + removeLoc(req, loc);
+			struct stat statbuf;
+			std::string fileContent;
+			
+			std::cout << fullPath << std::endl;
+			if (stat(fullPath.c_str(), &statbuf) != 0){//does not exist
 				statusLine = "HTTP/1.1 404 Not Found";
-				headers["Content-Length"] = "13";
-				body = "404 Not Found";
-				return;
+				headers["Content-Length"] = "29";
+				body = "404 Not Found from handle get";
 			}
-			statusLine = "HTTP/1.1 200 OK";
-			body = fileContent;
-			headers["Content-Length"] = fileContent.size();
-			// req.printFullReq();
+			else {
+				if (S_ISDIR(statbuf.st_mode)){//is a directory
+					//check if the path end with "/"
+					if (fullPath.at(fullPath.size() - 1) == '/'){
+						//checking if dir has index file
+						std::string indexPath = fullPath + "/index.html";
+						if (isFile(indexPath)){
+							std::string indexContent = readFromFile(indexPath);
+							if (!indexContent.empty()) {
+								statusLine = "HTTP/1.1 200 OK";
+								body = indexContent;
+								headers["Content-Length"] = std::to_string(indexContent.size());
+							}
+						}
+						else if (loc.getDirective("autoIndex").compare("on") == 0){//check if location has autoindex
+							std::cout << "kayen auto index\n";
+							std::string directoryListing = generateDirectoryListing(fullPath);
+							statusLine = "HTTP/1.1 200 OK";
+							body = directoryListing;
+							headers["Content-Length"] = std::to_string(body.size());
+						}
+						else {
+							statusLine = "HTTP/1.1 403 Forbidden";
+							body  = "Directory listing is not allowed.";
+							headers["Content-Length"] = "33";
+						}
+					}
+					else{
+						statusLine = "HTTP/1.1 301 Moved Permanently";
+						headers["Location"] = req.getUrl() + "/";
+						body = "Moved Permanently";
+						headers["Content-Length"] = "17";
+					}
+				}
+				else if (S_ISREG(statbuf.st_mode)){//is a file.
+					fileContent = readFromFile(fullPath);
+					statusLine = "HTTP/1.1 200 OK";
+					body = fileContent;
+					headers["Content-Length"] = std::to_string(fileContent.size());
+				}
+			}
 		}
 		
 		void generate(request &req, ServerData &serv){
