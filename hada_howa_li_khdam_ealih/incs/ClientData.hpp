@@ -29,7 +29,7 @@ class ClientData{
 		struct sockaddr_in addr;
 		bool isReqFinished;
 		request req;
-		response res;
+		responce res;
 		ServerData server;
 	public:
 		ClientData(){}

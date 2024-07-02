@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:56:38 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/24 16:42:51 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/09 12:37:46 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ bool ClientData::sendResponce(){
 		req.clear();
 		res.clear();
 		isReqFinished = false;
-		// exit(0);
 		return (true);
 	}
 	return (false);

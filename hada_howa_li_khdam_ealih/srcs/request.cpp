@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 19:05:03 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/24 17:38:11 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/06/09 12:37:16 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void request::addBuffer(std::string &buff, size_t bytesRec){
 			headersString = buff.substr(0, rnPos);
 		}
 		// std::cout << headersString << std::endl;
-		//check if the data is checked
+		//check if the data is chunked
 		if (headersString.find("Transfer-Encoding: chunked") != std::string::npos)
 			isChunked = true;
 		//check if theres a boudary
