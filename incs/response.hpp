@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/25 12:05:31 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/07/04 17:07:06 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,15 @@
 #include "ServerData.hpp"
 #include <dirent.h>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <map>
+#include <vector>
+#include <stdlib.h>
 
 class response{
 	private:
@@ -382,17 +391,118 @@ class response{
 				}
 			}
 			closedir(dir);
-
-			std::sort(files.begin(), files.end());
-
+			
 			std::stringstream listing;
-			listing << "<html><head><title>Index of " << directoryPath << "</title></head><body>";
 			listing << "<h1>Index of " << directoryPath << "</h1><ul>";
-			for (const std::string& file : files) {
+			for (unsigned int i = 0; i < files.size(); ++i) {
+				std::string file = files[i];
 				listing << "<li><a href=\"" << file << "\">" << file << "</a></li>";
 			}
 			listing << "</ul></body></html>";
 			return (listing.str());
+		}
+		
+				// Function to count the number of elements in a null-terminated char** array
+		size_t countEnv(char** env) {
+			size_t count = 0;
+			while (env[count] != nullptr) {
+				count++;
+			}
+			return count;
+		}
+
+		// Function to append new environment variables
+		char** appendEnv(char** envPtr, std::string QueryStr) {
+			// Define new environment variables
+			std::vector<std::string> newEnvVars;
+			newEnvVars.push_back("GATEWAY_INTERFACE=CGI/1.1");
+			newEnvVars.push_back("REQUEST_METHOD=GET");
+			newEnvVars.push_back("SCRIPT_FILENAME=/path/to/your/script.php");
+			newEnvVars.push_back(QueryStr);
+
+			// Count the number of existing environment variables
+			size_t existingCount = countEnv(envPtr);
+
+			// Allocate a new array to hold the existing and new environment variables
+			char** newEnvPtr = new char*[existingCount + newEnvVars.size() + 1];
+
+			// Copy existing environment variables to the new array
+			for (size_t i = 0; i < existingCount; ++i) {
+				newEnvPtr[i] = envPtr[i];
+			}
+
+			// Add new environment variables to the new array
+			for (size_t i = 0; i < newEnvVars.size(); ++i) {
+				newEnvPtr[existingCount + i] = new char[newEnvVars[i].size() + 1];
+				std::strcpy(newEnvPtr[existingCount + i], newEnvVars[i].c_str());
+			}
+
+			// Null-terminate the new array
+			newEnvPtr[existingCount + newEnvVars.size()] = nullptr;
+
+			return newEnvPtr;
+		}
+
+		int cgiExcution(std::string scriptPath, request &req){
+			std::ifstream scriptFile(scriptPath);
+			if (!scriptFile.is_open()){
+				std::cerr << "error opening the script file\n";
+				return (1);
+			}
+			// scriptPath = "python " + scriptPath;
+			int pipefd[2];
+			if (pipe(pipefd) == -1){
+				std::cerr << "error piping\n";
+				return (1);
+			}
+			pid_t pid = fork();
+			if (pid == 0){
+				close(pipefd[0]); // Close read end
+				dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe write end
+				close(pipefd[1]);
+				// char **fullEnv = appendEnv(envPtr, query);
+				// for (int i = 0; fullEnv[i]; i++){
+				// 	std::cout << fullEnv[i] << std::endl;
+				// }
+				// std::string pyPath = "/usr/bin/python";
+				// char* args[] = {(char *)pyPath.c_str(), (char *)scriptPath.c_str(), nullptr};
+				// if (execve("/usr/bin/python", args, fullEnv) < 0){
+				// 	std::cerr << "error execve\n";
+				// 	return (-1);
+				// }
+				exit(1);
+			}
+			else{
+				// Parent process
+				close(pipefd[1]); // Close write end
+				int status;
+				waitpid(pid, &status, 0);
+				// Read output from the pipe
+				char buffer[4096];
+				ssize_t bytesRead;
+				std::string body;
+				while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+					buffer[bytesRead] = '\0';
+					std::string buf(buffer, bytesRead);
+					body = body.append(buf);
+				}
+				close(pipefd[0]);
+
+					
+				if (WIFEXITED(status)){
+					if (WEXITSTATUS(status) == 0) {
+						// CGI program exited successfully
+						// ... (handle successful execution)
+						std::cout << body;
+						return (0);
+					} else {
+						std::cerr << "CGI program exited with error: " << WEXITSTATUS(status) << std::endl;
+						return (-1);
+					}
+				}
+				else
+					return (-1);
+			}
 		}
 		
 		void handlePost(request &req, location loc){
@@ -471,12 +581,124 @@ class response{
 			}
 		}
 		
+		size_t ft_strlen(char *s){
+			size_t i = 0;
+			while (s[i])
+				i++;
+			return (i);
+		}
+		
+		char	*ft_strdup(const char *s)
+		{
+			char	*p;
+			int		i;
+
+			p = (char *)malloc(sizeof(char) * ft_strlen((char *)s) + 1);
+			if (p == NULL)
+				return (0);
+			i = 0;
+			while (s[i] != '\0')
+			{
+				p[i] = (char)s[i];
+				i++;
+			}
+			p[i] = '\0';
+			return (p);
+		}
+		
+		int cgiGet(std::string scriptPath, request &req, std::string query){
+			std::ifstream scriptFile(scriptPath);
+			if (!scriptFile.is_open()){
+				std::cerr << "error opening the script file\n";
+				return (1);
+			}
+			int pipefd[2];
+			if (pipe(pipefd) == -1){
+				std::cerr << "error piping\n";
+				return (1);
+			}
+			pid_t pid = fork();
+			if (pid == 0){
+				close(pipefd[0]); // Close read end
+				dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe write end
+				close(pipefd[1]);
+				std::string pyPath = "/usr/local/bin/python3";
+				char* args[] = {(char *)pyPath.c_str(), (char *)scriptPath.c_str(), nullptr};
+				char *env[5];
+				env[0] = ft_strdup("GATEWAY_INTERFACE=CGI/1.1");
+				env[1] = ft_strdup("REQUEST_METHOD=GET");
+				query = "QUERY_STRING=" + query;
+				env[2] = (char*)query.c_str();
+				std::string scriptFileName = "SCRIPT_FILENAME=" + scriptPath;
+				env[3] = (char *)scriptFileName.c_str();
+				env[4] = NULL;
+				if (execve("/usr/local/bin/python3", args, env) < 0){
+					std::cerr << "error execve\n";
+					return (-1);
+				}
+				exit(1);
+			}
+			else{
+				// Parent process
+				close(pipefd[1]); // Close write end
+				int status;
+				waitpid(pid, &status, 0);
+				// Read output from the pipe
+				char buffer[4096];
+				ssize_t bytesRead;
+				// std::string body;
+				while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+					buffer[bytesRead] = '\0';
+					std::string buf(buffer, bytesRead);
+					body = body.append(buf);
+				}
+				close(pipefd[0]);
+				if (WIFEXITED(status)){
+					if (WEXITSTATUS(status) == 0) {
+						statusLine = "HTTP/1.1 200 OK";
+						headers["Content-Length"] = std::to_string(body.size());
+						headers["Content-Type"] = "text/html";
+						std::cout << body << std::endl;
+						return (0);
+					} else {
+						statusLine = "HTTP/1.1 500 Internal Server Error";
+						body = "500 Internal Server Error";
+						// headers["Content-Type"] = "text/html";
+						headers["Content-Length"] = std::to_string(body.size());
+						return (-1);
+					}
+				}
+				else
+					return (-1);
+			}
+		}
+		
+		bool locationHasCgi(std::string fullPath){
+			// check if the fullPath has py in the end
+			size_t dotPos = fullPath.find_last_of('.');
+			if (dotPos == std::string::npos || dotPos == 0) {
+				return false;
+			}
+			std::string extension = fullPath.substr(dotPos + 1);
+			if (extension == "py")
+				return (true);
+			else
+				return (false);
+		}
+		
 		void handleGet(request &req, location loc){
 			std::string fullPath = loc.getDirective("root") + removeLoc(req, loc);
 			struct stat statbuf;
 			std::string fileContent;
 			
-			std::cout << fullPath << std::endl;
+			int questionPos = fullPath.find("?");
+			std::string query = "";
+			if (questionPos != std::string::npos){
+				query = fullPath.substr(questionPos + 1, fullPath.size());
+				fullPath = fullPath.substr(0, questionPos);
+			}
+			std::cout << "fullPath requested = " << fullPath << std::endl;
+			std::cout << "query = " << query << std::endl;
 			if (stat(fullPath.c_str(), &statbuf) != 0){//does not exist
 				statusLine = "HTTP/1.1 404 Not Found";
 				headers["Content-Length"] = "29";
@@ -517,10 +739,15 @@ class response{
 					}
 				}
 				else if (S_ISREG(statbuf.st_mode)){//is a file.
-					fileContent = readFromFile(fullPath);
-					statusLine = "HTTP/1.1 200 OK";
-					body = fileContent;
-					headers["Content-Length"] = std::to_string(fileContent.size());
+					if (locationHasCgi(fullPath)){
+						cgiGet(fullPath, req, query);
+					}
+					else{
+						fileContent = readFromFile(fullPath);
+						statusLine = "HTTP/1.1 200 OK";
+						body = fileContent;
+						headers["Content-Length"] = std::to_string(fileContent.size());
+					}
 				}
 			}
 		}
