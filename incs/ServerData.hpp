@@ -72,7 +72,7 @@ class ServerData{
 		std::map<std::string, std::string> errorPages;
 	public:
 		ServerData(){}
-		ServerData(std::string servName, std::string ho, std::vector<int> portss, size_t mbz);
+		ServerData( std::string servName,  std::string ho,  std::vector<int> portss, size_t mbz);
 
 		void			setmaxBodySize(std::string const& Value);
 		std::string getHost() const;
@@ -89,7 +89,7 @@ class ServerData{
 		void			setServerName(std::string const& Value);
 		void				parse_server_ports(const std::string& ports, ServerData& server);
 
-
+		void start_listen();
 		void addLoc(location &lo){
 			locs.push_back(lo);
 		}

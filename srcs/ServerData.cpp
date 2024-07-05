@@ -51,8 +51,8 @@ void ServerData::parse_server_ports(const std::string& ports, ServerData& server
   }
 }
 
-ServerData::ServerData(std::string servName, std::string ho, std::vector<int> portss, size_t mbz)
-	: serverName(servName), host(ho), ports(portss), maxBodySize(mbz) {
+void ServerData::start_listen()
+{
 	for(unsigned long i = 0; i < ports.size();i++){
 		int fd = socket(AF_INET, SOCK_STREAM, 0);
 		if (fd == -1){
@@ -76,6 +76,11 @@ ServerData::ServerData(std::string servName, std::string ho, std::vector<int> po
 		}
 		servSockets.push_back(fd);
 	}
+
+}
+ServerData::ServerData(std::string servName, std::string ho, std::vector<int> portss, size_t mbz)
+	: serverName(servName), host(ho), ports(portss), maxBodySize(mbz) {
+	start_listen();
 }
 
 std::vector<int> &ServerData::getServSockets(){
@@ -136,3 +141,4 @@ std::string ServerData::getHost() const
 {
     return this->host;
 }
+

@@ -59,7 +59,7 @@ void startServer(std::vector<class ServerData> &servers){
 		}
 		for(int i = 0; i < FD_SETSIZE; i++){
 			if (FD_ISSET(i, &readySocketR)){ // i is ready for reading
-				if (isFdOfServers(i, servers)){ //there is an incoming connection request from a client waiting to be accepted.
+				if (isFdOfServers(i, servers)){ //there is an incoming connection request10000000 from a client waiting to be accepted.
 					struct sockaddr_in clientAddr;
 					socklen_t clientAddLen = sizeof(clientAddr);
 					int cltfd = accept(i, (struct sockaddr *)&clientAddr, &clientAddLen);
@@ -110,6 +110,7 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
     std::vector<ServerData> servers;
     std::ifstream file(filename.c_str());
     std::string line;
+	int complite = 0;
 
     while (std::getline(file, line)) {
         if (line.empty()) // Skip empty lines
@@ -131,19 +132,38 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
                 std::string key, value;
                 line_stream >> key >> value;
                 if (std::strstr(key.c_str(), "port") != NULL)
-                    server.parse_server_ports(value, server);
-                else if (std::strstr(key.c_str(), "serverName") != NULL)
 				{
+					complite++;
+                	server.parse_server_ports(value, server);
+					if(complite == 4)
+						server.start_listen();
+						// server(server.getServerName(),server.getHost(),server.getPorts(),10000000);
+
+				}
+				else if (std::strstr(key.c_str(), "serverName") != NULL)
+				{
+					
 					std::string value2 = value.substr(0, value.find_first_of(";"));
                     server.setServerName(value2);
+					complite++;
+					if(complite == 4)
+						server.start_listen();
 				}
                 else if (std::strstr(key.c_str(), "host") != NULL)
 				{
 					std::string value2 = value.substr(0, value.find_first_of(";"));
                     server.setHost(value2);
+					complite++;
+					if(complite == 4)
+						server.start_listen();
 				}
                 else if (std::strstr(key.c_str(), "maxBodySize") != NULL)
+				{
                     server.setmaxBodySize(value);
+					complite++;
+					if(complite == 4)
+						server.start_listen();
+				}
                 if (std::strstr(line.c_str(), "location:") != NULL) {
                     int start = line.find_first_of("(") + 1;
                     int end = line.find_first_of(")");
