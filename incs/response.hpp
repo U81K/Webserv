@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/07/05 13:52:56 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/07/05 15:55:22 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -719,6 +719,87 @@ class response{
 				}
 			}
 		}
+	bool delete_directory(const std::string &path) {
+    //https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
+    //https://medium.com/@noransaber685/exploring-directory-operations-opendir-readdir-and-closedir-system-calls-a8fb1b6e67bb
+    DIR *dir = opendir(path.c_str());
+    if (!dir) {
+        std::cerr << "Failed to open directory: " << path << std::endl;
+        return false;
+    }
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL){
+        if (std::strcmp(entry->d_name, ".") && std::strcmp(entry->d_name, "..")) {
+            std::string full_path = path + "/" + entry->d_name;
+            struct stat st;//http://codewiki.wikidot.com/c:system-calls:stat
+            if (stat(full_path.c_str(), &st) == 0) {
+                if (S_ISDIR(st.st_mode)) {
+                    if (!delete_directory(full_path)) {
+                        closedir(dir);
+                        return false;
+                    }
+                } else {
+                    if (std::remove(full_path.c_str()) != 0) {
+                        std::cerr << "Failed to remove file: " << full_path << std::endl;
+                        closedir(dir);
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    closedir(dir);
+    std::remove(path.c_str());
+    return true;
+}
+
+bool handle_delete(request &req , location &loc)
+{
+   
+    std::cout << "handel delete" << std::endl;
+    std::string path = loc.getDirective("root") + removeLoc(req, loc);
+    struct stat object_stat;
+    // object_stat.
+    if(stat(path.c_str(),&object_stat) != 0)
+        notFound(req);
+    else if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
+    {
+        // hna khasni nchecky permissions
+        if(object_stat.st_mode & S_IWUSR){
+
+            if (delete_directory(path)) {
+                statusLine = "HTTP/1.1 200 OK ";
+                body = "Directory deleted";
+                headers["Content-Length"] = std::to_string(body.size());
+            } else {
+                statusLine = "HTTP/1.1 500 Internal Server Error";
+                body = "bad trip!";
+                headers["Content-Length"] = std::to_string(body.size());
+            }
+        }
+        else {
+            statusLine = "HTTP/1.1 500 Internal Server Error";
+            body = "perrmission denied";
+            headers["Content-Length"] = std::to_string(body.size());
+        }
+    }
+    else
+    {
+        if(object_stat.st_mode & S_IWUSR){
+            std::remove(path.c_str());
+            statusLine = "HTTP/1.1 200 OK ";
+            body = "File deleted";
+            headers["Content-Length"] = std::to_string(body.size());
+        }
+        else {
+            statusLine = "HTTP/1.1 500 Internal Server Error";
+            body = "perrmission denied";
+            headers["Content-Length"] = std::to_string(body.size());
+        }
+
+    }
+    return true;
+	}
 		
 		void generate(request &req, ServerData &serv){
 			if (isReqWellFormated(req, serv)){
@@ -731,11 +812,14 @@ class response{
 								handlePost(req, loc);
 							else if (req.getMethod() == 0)
 								handleGet(req, loc);
-							else{
+							if(req.getMethod() == request::DELETE)
+								handle_delete(req,loc);
+							else{ 
 								statusLine = "HTTP/1.1 200 OK";
 								body = "hello world!";
 								headers["Content-Length"] = "12";
 							}
+							
 							// if(req.getMethod() == request::DELETE)
 							// 	handle_delete(req,serv);
 							// else if(req.getMethod() == request::GET){
