@@ -209,105 +209,6 @@ class response{
 			headers["Content-Length"] = "18";
 			return (false);
 		}
-		
-		// bool delete_directory(const std::string &path) 
-		// {
-		// 	//https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
-		// 	//https://medium.com/@noransaber685/exploring-directory-operations-opendir-readdir-and-closedir-system-calls-a8fb1b6e67bb
-		// 	DIR *dir = opendir(path.c_str());
-		// 	if (!dir) {
-		// 		std::cerr << "Failed to open directory: " << path << std::endl;
-		// 		return false;
-		// 	}
-		// 	struct dirent *entry;
-		// 	while ((entry = readdir(dir)) != NULL){
-		// 		if (std::strcmp(entry->d_name, ".") && std::strcmp(entry->d_name, "..")) {
-		// 			std::string full_path = path + "/" + entry->d_name;
-		// 			struct stat st;//http://codewiki.wikidot.com/c:system-calls:stat
-		// 			if (stat(full_path.c_str(), &st) == 0) {
-		// 				if (S_ISDIR(st.st_mode)) {
-		// 					if (!delete_directory(full_path)) {
-		// 						closedir(dir);
-		// 						return false;
-		// 					}
-		// 				} else {
-		// 					if (std::remove(full_path.c_str()) != 0) {
-		// 						std::cerr << "Failed to remove file: " << full_path << std::endl;
-		// 						closedir(dir);
-		// 						return false;
-		// 					}
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// 	closedir(dir);
-		// 	std::remove(path.c_str());
-		// 	return true;
-		// }
-		
-		// bool handle_delete(request &req, ServerData &serv)
-		// {
-		// 	(void) serv;
-		// 	std::cout << "handel delete" << std::endl;
-		// 	std::string path = "." + req.getUrl();
-		// 	struct stat object_stat;
-		// 	// object_stat.
-		// 	if(stat(path.c_str(),&object_stat) != 0)
-		// 		notFound(req);
-		// 	else if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
-		// 	{
-		// 		// hna khasni nchecky permissions 
-		// 		if (delete_directory(path)) {
-		// 			statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
-		// 		} else {
-		// 			statusLine = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 21\r\nConnection: close\r\n\r\n bad trip !";
-		// 		}
-		// 	}
-		// 	else
-		// 	{
-		// 		std::remove(path.c_str());
-		// 		std::cout << "zeb" << std::endl;
-		// 		statusLine = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\n good trip!";
-		// 	}
-		// 	return true;
-		// }
-		
-		// bool list_directory(std::string &dir_path) {
-		// 	DIR *dir = opendir(dir_path.c_str());
-		// 	if (dir == nullptr) {
-		// 		return false;
-		// 	}
-		// 	struct dirent *output;
-		// 	while ((output = readdir(dir)) != NULL) {
-		// 		std::string name = output->d_name;
-		// 		if (name == "." || name == "..") {
-		// 			continue;
-		// 		}
-		// 		statusLine += "<li><a href=\"" + name + "\">" + name + "\n";
-		// 	}
-		// 	closedir(dir);
-		// 	statusLine += "</ul>\n</body>\n</html>";
-
-		// 	std::cout << statusLine << std::endl;
-		// 	return true;
-		// }
-		
-		// bool get_resources()
-		// {
-		// 	//  ia makanch l file fe root err 
-		// 	std::string root = "";
-		// 	return true;
-		// }
-		
-		// bool handel_get(request &req, ServerData &serv){
-		// 	(void) serv;
-		// 	if(!get_resources())
-		// 		notFound(req);
-		// 	std::string file = "." + req.getUrl();
-		// 	list_directory(file);
-		// 	return(true);
-		// }
-		
 		std::string getFileName(request &req){
 			std::string ret = "random";
 			size_t fnPos = (req.getBodyString()).find("filename=");
@@ -648,19 +549,146 @@ class response{
 			}
 		}
 		
-		bool locationHasCgi(std::string fullPath){
-			// check if the fullPath has py in the end
-			size_t dotPos = fullPath.find_last_of('.');
-			if (dotPos == std::string::npos || dotPos == 0) {
-				return false;
-			}
-			std::string extension = fullPath.substr(dotPos + 1);
-			if (extension == "py")
-				return (true);
-			else
-				return (false);
-		}
-		
+// 		bool locationHasCgi(std::string fullPath){
+// 			// check if the fullPath has py in the end
+// 			size_t dotPos = fullPath.find_last_of('.');
+// 			if (dotPos == std::string::npos || dotPos == 0) {
+// 				return false;
+// 			}
+// 			std::string extension = fullPath.substr(dotPos + 1);
+// 			if (extension == "py")
+// 				return (true);
+// 			else
+// 				return (false);
+// 		}
+// 		bool list_directory(std::string &dir_path) {
+
+//     statusLine = "HTTP/1.1 200 OK";
+//     // body += "Index of " + dir_path + "\n\r";
+//     DIR *dir = opendir(dir_path.c_str());
+//     if (dir == nullptr) {
+//         return false;
+//     }
+//     struct dirent *output;
+//     while ((output = readdir(dir)) != NULL) {
+//         std::string name = output->d_name;
+//         if (name == "." || name == "..") {
+//             continue;
+            
+//         }
+//         body += name + "\n";
+//     }
+//     std::string htmlContent =
+//     "<!DOCTYPE html>\n"
+//     "<html lang=\"en\">\n"
+//     "<head>\n"
+//     "    <meta charset=\"UTF-8\">\n"
+//     "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+//     "    <title>Directory Listing</title>\n"
+//     "    <style>\n"
+//     "        body {\n"
+//     "            font-family: Arial, sans-serif;\n"
+//     "            margin: 20px;\n"
+//     "        }\n"
+//     "        h1 {\n"
+//     "            margin-bottom: 20px;\n"
+//     "        }\n"
+//     "        ul {\n"
+//     "            list-style-type: none;\n"
+//     "            padding: 0;\n"
+//     "        }\n"
+//     "        li {\n"
+//     "            margin-bottom: 10px;\n"
+//     "        }\n"
+//     "        a {\n"
+//     "            text-decoration: none;\n"
+//     "            color: #007bff;\n"
+//     "        }\n"
+//     "    </style>\n"
+//     "</head>\n"
+//     "<body>\n"
+//     "    <h1>Directory Listing</h1>\n"
+//     "    <ul>\n"
+//         + generateListItems(body) +
+//     "    </ul>\n"
+//     "</body>\n"
+//     "</html>\n";
+//     closedir(dir);
+//     // body += "</ul>\n</body>\n</html>";
+//     body = htmlContent;
+//     std::cout << body << std::endl;
+//     // std::string size = "" + body.size();
+//     std::cout << "body = " << body << std::endl;
+//     headers["Content-Length"] = std::to_string(body.size());
+//     return true;
+// }
+// bool isLocationHaveRedi(location loc){
+//     std::string dir = loc.getDirective("return");
+//     if (dir.size() > 0){
+//         statusLine = "HTTP/1.1 301 Moved Permanently";
+//         headers["Location"] = dir;
+//         return (true);
+//     }
+//     return (false);
+// }
+// bool get_resources(request & req)
+// {
+//     root = "www";
+//     is_dir = true;
+//     auto_index = false ;
+//     path = "./" + root + req.getUrl();
+//     // (void) req;
+// // 	//  ia makanch l file fe root err 
+// // 	// std::string root = "";
+// // 	root = "/www";
+// // 	path = "." + root +req.getUrl();
+// // 	std::cout << "\033[36m";
+// // 	std::cout << "root path " << path << std::endl;
+// // 	// std::string path = "." + req.getUrl();
+// // 	struct stat object_stat;
+// // 	// object_stat.
+// // 	if(stat(path.c_str(),&object_stat) != 0)
+// // 		return false;
+//     return true;
+// }
+// 	bool handel_get(request &req, ServerData &serv){
+// 		(void) serv;
+// 		if(!get_resources(req))
+// 		{
+// 			notFound(req);
+// 			return false;
+// 		}
+// 		else
+// 		{
+// 			// std::cout << "\n\n\n\n"<< "bad trip" << req.getUrl() << "\n\n\n\n\n\n\n";
+// 			std::string line ;
+// 			std::ifstream file_("www/index.html");
+// 			if(auto_index){
+// 				std::ostringstream file_content;
+// 				statusLine = "HTTP/1.1 200 OK";
+// 				// file_content << "www/index.html";
+// 				while(std::getline(file_,line))
+// 				{
+// 					body += line + '\n';
+// 					std::cout << line << std::endl;
+
+// 				}
+// 				headers["Content-Length"] = std::to_string(body.size());
+// 				return(true);
+// 			}
+// 			else if(is_dir)
+// 				list_directory(path);
+// 			else {
+// 					std::ifstream  zeb(path);
+// 					std::string line ;
+// 					statusLine = "HTTP/1.1 200 OK";
+// 					while(getline(zeb,line))
+// 						body += line + "\n";
+// 			}
+// 			headers["Content-Length"] = std::to_string(body.size());    
+// 			return(true);
+// 		}
+// 	}
 		void handleGet(request &req, location loc){
 			std::string fullPath = loc.getDirective("root") + removeLoc(req);
 			struct stat statbuf;
@@ -726,6 +754,7 @@ class response{
 				}
 			}
 		}
+
 	bool delete_directory(const std::string &path) {
     //https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
     //https://medium.com/@noransaber685/exploring-directory-operations-opendir-readdir-and-closedir-system-calls-a8fb1b6e67bb
@@ -814,10 +843,9 @@ bool handle_delete(request &req , location &loc)
 					location loc = getLoc(req, serv);
 					if (!isLocationHaveRedi(loc)){
 						if (isMethodAllowed(req, loc)){
-							// std::cout << req.getBodyString() << std::endl;
-							if (req.getMethod() == 1)
+							if (req.getMethod() == request::POST)
 								handlePost(req, loc);
-							else if (req.getMethod() == 0)
+							else if (req.getMethod() ==request::GET)
 								handleGet(req, loc);
 							if(req.getMethod() == request::DELETE)
 								handle_delete(req,loc);
@@ -826,15 +854,6 @@ bool handle_delete(request &req , location &loc)
 								body = "hello world!";
 								headers["Content-Length"] = "12";
 							}
-							
-							// if(req.getMethod() == request::DELETE)
-							// 	handle_delete(req,serv);
-							// else if(req.getMethod() == request::GET){
-							// 	handel_get(req,serv);
-							// else if(req.getMethod() == request::POST)
-							// 	handel_post();
-								// exit(0);
-							// }
 						}
 					}
 				}
