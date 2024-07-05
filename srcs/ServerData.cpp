@@ -129,7 +129,7 @@ bool ServerData::isIaSocket(int i){
 
 void	ServerData::setmaxBodySize(std::string const& Value)
 {
-    this->maxBodySize = std::stoull(Value);
+    this->maxBodySize = static_cast<size_t>(Value.size());
 }
 
 std::string ServerData::getHost() const

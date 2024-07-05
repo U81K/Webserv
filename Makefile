@@ -12,7 +12,7 @@
 
 NAME		=	webserv
 RM			=	rm -rf
-CXX			=	g++
+CXX			=	c++
 CXXFLAGS	=	-Wall -Wextra -Werror -std=c++98
 SRCS		=	srcs/main.cpp srcs/ServerData.cpp srcs/ClientData.cpp srcs/request.cpp srcs/response.cpp
 OBJS		=	$(SRCS:.cpp=.o)

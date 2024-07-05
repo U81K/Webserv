@@ -108,7 +108,7 @@ void startServer(std::vector<class ServerData> &servers){
 
 std::vector<ServerData> parseConfigFile(const std::string& filename) {
     std::vector<ServerData> servers;
-    std::ifstream file(filename);
+    std::ifstream file(filename.c_str());
     std::string line;
 
     while (std::getline(file, line)) {
@@ -130,46 +130,47 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
                 std::istringstream line_stream(line);
                 std::string key, value;
                 line_stream >> key >> value;
-                if (std::strstr(key.c_str(), "port") != nullptr)
+                if (std::strstr(key.c_str(), "port") != NULL)
                     server.parse_server_ports(value, server);
-                else if (std::strstr(key.c_str(), "serverName") != nullptr)
+                else if (std::strstr(key.c_str(), "serverName") != NULL)
 				{
 					std::string value2 = value.substr(0, value.find_first_of(";"));
                     server.setServerName(value2);
 				}
-                else if (std::strstr(key.c_str(), "host") != nullptr)
+                else if (std::strstr(key.c_str(), "host") != NULL)
 				{
 					std::string value2 = value.substr(0, value.find_first_of(";"));
                     server.setHost(value2);
 				}
-                else if (std::strstr(key.c_str(), "maxBodySize") != nullptr)
+                else if (std::strstr(key.c_str(), "maxBodySize") != NULL)
                     server.setmaxBodySize(value);
-                if (std::strstr(line.c_str(), "location:") != nullptr) {
+                if (std::strstr(line.c_str(), "location:") != NULL) {
                     int start = line.find_first_of("(") + 1;
                     int end = line.find_first_of(")");
                     location khalil(line.substr(start, end - start)); //Storing location
-                    for (size_t i = 0; i < 6; i++) {
+    			for (size_t i = 0; i < 6; i++) {
                         if (!std::getline(file, line) || line.empty())
                             break;
-                        if (std::strstr(line.c_str(), "root") != nullptr) {
+                        if (std::strstr(line.c_str(), "root") != NULL)
+						{
                             start = line.find_first_of("=") + 1;
                             khalil.addDirective("root", line.substr(start, line.size() - start - 1));
-                        } else if (std::strstr(line.c_str(), "index") != nullptr) {
+                        } else if (std::strstr(line.c_str(), "index") != NULL) {
                             start = line.find_first_of("=") + 1;
                             khalil.addDirective("index", line.substr(start, line.size() - start - 1));
-                        } else if (std::strstr(line.c_str(), "cgi_extentions") != nullptr) {
+                        } else if (std::strstr(line.c_str(), "cgi_extentions") != NULL) {
                             start = line.find_first_of("=") + 1;
                             khalil.addDirective("cgi_extentions", line.substr(start, line.size() - start - 1));
-                        } else if (std::strstr(line.c_str(), "autoIndex") != nullptr) {
+                        } else if (std::strstr(line.c_str(), "autoIndex") != NULL) {
                             start = line.find_first_of("=") + 1;
-                            if (std::strstr(line.c_str(), "on") != nullptr)
+                            if (std::strstr(line.c_str(), "on") != NULL)
                                 khalil.addDirective("autoIndex", "on");
                             else
                                 khalil.addDirective("autoIndex", "off");
-                        } else if (std::strstr(line.c_str(), "upload_path") != nullptr) {
+                        } else if (std::strstr(line.c_str(), "upload_path") != NULL) {
                             start = line.find_first_of("=") + 1;
                             khalil.addDirective("upload_path", line.substr(start, line.size() - start - 1));
-                        } else if (std::strstr(line.c_str(), "acceptedMethods") != nullptr) {
+                        } else if (std::strstr(line.c_str(), "acceptedMethods") != NULL) {
                             start = line.find_first_of("=") + 1;
                             khalil.addDirective("acceptedMethods", line.substr(start, line.size() - start - 1));
                         }
