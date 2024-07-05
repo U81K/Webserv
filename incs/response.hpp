@@ -6,7 +6,7 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/07/04 17:07:06 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/07/05 13:52:56 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -402,107 +402,80 @@ class response{
 			return (listing.str());
 		}
 		
-				// Function to count the number of elements in a null-terminated char** array
-		size_t countEnv(char** env) {
-			size_t count = 0;
-			while (env[count] != nullptr) {
-				count++;
-			}
-			return count;
-		}
-
-		// Function to append new environment variables
-		char** appendEnv(char** envPtr, std::string QueryStr) {
-			// Define new environment variables
-			std::vector<std::string> newEnvVars;
-			newEnvVars.push_back("GATEWAY_INTERFACE=CGI/1.1");
-			newEnvVars.push_back("REQUEST_METHOD=GET");
-			newEnvVars.push_back("SCRIPT_FILENAME=/path/to/your/script.php");
-			newEnvVars.push_back(QueryStr);
-
-			// Count the number of existing environment variables
-			size_t existingCount = countEnv(envPtr);
-
-			// Allocate a new array to hold the existing and new environment variables
-			char** newEnvPtr = new char*[existingCount + newEnvVars.size() + 1];
-
-			// Copy existing environment variables to the new array
-			for (size_t i = 0; i < existingCount; ++i) {
-				newEnvPtr[i] = envPtr[i];
-			}
-
-			// Add new environment variables to the new array
-			for (size_t i = 0; i < newEnvVars.size(); ++i) {
-				newEnvPtr[existingCount + i] = new char[newEnvVars[i].size() + 1];
-				std::strcpy(newEnvPtr[existingCount + i], newEnvVars[i].c_str());
-			}
-
-			// Null-terminate the new array
-			newEnvPtr[existingCount + newEnvVars.size()] = nullptr;
-
-			return newEnvPtr;
-		}
-
-		int cgiExcution(std::string scriptPath, request &req){
+		int cgiPost(std::string scriptPath, request &req){
 			std::ifstream scriptFile(scriptPath);
 			if (!scriptFile.is_open()){
 				std::cerr << "error opening the script file\n";
 				return (1);
 			}
-			// scriptPath = "python " + scriptPath;
-			int pipefd[2];
-			if (pipe(pipefd) == -1){
+			int pipeOut[2];
+			int pipeIn[2];
+			if (pipe(pipeOut) == -1 || pipe(pipeIn) == -1){
 				std::cerr << "error piping\n";
 				return (1);
 			}
 			pid_t pid = fork();
 			if (pid == 0){
-				close(pipefd[0]); // Close read end
-				dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe write end
-				close(pipefd[1]);
-				// char **fullEnv = appendEnv(envPtr, query);
-				// for (int i = 0; fullEnv[i]; i++){
-				// 	std::cout << fullEnv[i] << std::endl;
-				// }
-				// std::string pyPath = "/usr/bin/python";
-				// char* args[] = {(char *)pyPath.c_str(), (char *)scriptPath.c_str(), nullptr};
-				// if (execve("/usr/bin/python", args, fullEnv) < 0){
-				// 	std::cerr << "error execve\n";
-				// 	return (-1);
-				// }
+				close(pipeOut[0]); // Close read end of stdout pipe
+        		dup2(pipeOut[1], STDOUT_FILENO); // Redirect stdout to pipe write end
+        		close(pipeOut[1]);
+				
+				close(pipeIn[1]); // Close write end
+				dup2(pipeIn[0], STDIN_FILENO); // Redirect stdin to pipe read end
+				close(pipeIn[0]);
+				
+				std::string pyPath = "/usr/local/bin/python3";
+				char* args[] = {(char *)pyPath.c_str(), (char *)scriptPath.c_str(), nullptr};
+				char *env[5];
+				env[0] = ft_strdup("GATEWAY_INTERFACE=CGI/1.1");
+				env[1] = ft_strdup("REQUEST_METHOD=POST");
+				std::string bodyLen = "CONTENT_LENGTH=" + std::to_string((req.getBodyString()).size());
+				env[2] = (char*)bodyLen.c_str();//
+				std::string scriptFileName = "SCRIPT_FILENAME=" + scriptPath;
+				env[3] = (char *)scriptFileName.c_str();
+				env[4] = NULL;
+				if (execve("/usr/local/bin/python3", args, env) < 0){
+					std::cerr << "error execve\n";
+					return (-1);
+				}
 				exit(1);
 			}
-			else{
-				// Parent process
-				close(pipefd[1]); // Close write end
+			else {
+				close(pipeOut[1]); // Close write end of stdout pipe
+        		close(pipeIn[0]); // Close read end of stdin pipe
+				
+				// Write the request body to the stdin pipe
+        		write(pipeIn[1], (req.getBodyString()).c_str(), (req.getBodyString()).size());
+        		close(pipeIn[1]); // Close write end after writing
+				
 				int status;
 				waitpid(pid, &status, 0);
 				// Read output from the pipe
 				char buffer[4096];
 				ssize_t bytesRead;
-				std::string body;
-				while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+				// std::string body;
+				while ((bytesRead = read(pipeOut[0], buffer, sizeof(buffer) - 1)) > 0) {
 					buffer[bytesRead] = '\0';
 					std::string buf(buffer, bytesRead);
 					body = body.append(buf);
 				}
-				close(pipefd[0]);
-
-					
+				close(pipeOut[0]);
 				if (WIFEXITED(status)){
 					if (WEXITSTATUS(status) == 0) {
-						// CGI program exited successfully
-						// ... (handle successful execution)
-						std::cout << body;
+						statusLine = "HTTP/1.1 200 OK";
+						headers["Content-Length"] = std::to_string(body.size());
+						headers["Content-Type"] = "text/html";
 						return (0);
 					} else {
-						std::cerr << "CGI program exited with error: " << WEXITSTATUS(status) << std::endl;
+						statusLine = "HTTP/1.1 500 Internal Server Error";
+						body = "500 Internal Server Error";
+						headers["Content-Length"] = std::to_string(body.size());
 						return (-1);
 					}
 				}
 				else
 					return (-1);
-			}
+        	}
 		}
 		
 		void handlePost(request &req, location loc){
@@ -544,10 +517,7 @@ class response{
 							std::string indexPath = fullPath + "/index.html";
 							if (isFile(indexPath)){
 								bool isLocationHasCgi = false;
-								if (isLocationHasCgi){
-									//run cgi on the requested file
-								}
-								else{
+								if (!isLocationHasCgi){
 									statusLine = "HTTP/1.1 403 Forbidden";
 									body  = "Directory listing is not allowed.";
 									headers["Content-Length"] = "33";
@@ -567,9 +537,9 @@ class response{
 						}
 					}
 					else if (S_ISREG(statbuf.st_mode)){//is a file.
-						bool isLocationHasCgi = false;
-						if (isLocationHasCgi){
-							//run cgi on the requested file
+						if (locationHasCgi(fullPath)){
+							std::cout << "kyen cgi from post\n";
+							cgiPost(fullPath, req);
 						}
 						else{
 							statusLine = "HTTP/1.1 403 Forbidden";
@@ -658,12 +628,10 @@ class response{
 						statusLine = "HTTP/1.1 200 OK";
 						headers["Content-Length"] = std::to_string(body.size());
 						headers["Content-Type"] = "text/html";
-						std::cout << body << std::endl;
 						return (0);
 					} else {
 						statusLine = "HTTP/1.1 500 Internal Server Error";
 						body = "500 Internal Server Error";
-						// headers["Content-Type"] = "text/html";
 						headers["Content-Length"] = std::to_string(body.size());
 						return (-1);
 					}
@@ -697,8 +665,8 @@ class response{
 				query = fullPath.substr(questionPos + 1, fullPath.size());
 				fullPath = fullPath.substr(0, questionPos);
 			}
-			std::cout << "fullPath requested = " << fullPath << std::endl;
-			std::cout << "query = " << query << std::endl;
+			// std::cout << "fullPath requested = " << fullPath << std::endl;
+			// std::cout << "query = " << query << std::endl;
 			if (stat(fullPath.c_str(), &statbuf) != 0){//does not exist
 				statusLine = "HTTP/1.1 404 Not Found";
 				headers["Content-Length"] = "29";
