@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerData.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: khaimer <khaimer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 18:09:00 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/06/08 16:38:27 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/07/05 21:03:27 by khaimer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,16 +22,6 @@
 #include <map>
 
 void setnonblocking(int sock);
-
-struct Location{
-	std::string path;
-	std::string root;
-	std::vector<std::string> acceptedMethods;
-	std::string index;
-	bool autoIndex;
-	std::string uploadPath;
-	std::string cgiPath;
-};
 
 class location{
 	private:
@@ -60,6 +50,15 @@ class location{
 		std::map<std::string, std::string> &getDirectives(){
 			return (directive);
 		}
+
+		//
+
+		void printDirectives(){
+        for (std::map<std::string, std::string>::const_iterator it = directive.begin(); it != directive.end(); ++it) {
+            std::cout << it->first << ": " << it->second << std::endl;
+        }
+		}
+
 };
 
 class ServerData{
@@ -68,26 +67,41 @@ class ServerData{
 		std::string serverName;
 		std::string host;
 		std::vector<int> ports;
-		std::vector<Location> locations;
 		std::vector<location> locs;
 		size_t maxBodySize;
 		std::map<std::string, std::string> errorPages;
 	public:
 		ServerData(){}
 		ServerData(std::string servName, std::string ho, std::vector<int> portss, size_t mbz);
+
+		void			setmaxBodySize(std::string const& Value);
+		std::string getHost() const;
 		std::vector<int> &getServSockets();
 		bool isIaSocket(int i);
-		void addLocation(Location loc);
+		void addLocation(location locationData);
 		std::string getServerName() const;
-		std::string getHost() const;
-		std::vector<Location> getLocation() const;
+		std::vector<location> getLocation() const;
 		std::vector<int> getPorts() const;
-		size_t getMaxBodySize();
+		size_t		getMaxBodySize() const;
+
+		void			setHost(std::string const& Value);
+
+		void			setServerName(std::string const& Value);
+		void				parse_server_ports(const std::string& ports, ServerData& server);
+
+
 		void addLoc(location &lo){
 			locs.push_back(lo);
 		}
 		std::vector<location> getLocs() const{
 			return (locs);
+		}
+		
+		void	printport() //solo
+		{
+			for (size_t i = 0; i < this->ports.size(); i++)
+			    std::cout << this->ports[i] << " ";
+			std::cout << "(port)\n";
 		}
 };
 

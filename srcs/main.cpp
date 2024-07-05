@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: khaimer <khaimer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/07/05 15:52:05 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/07/05 21:22:13 by khaimer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,104 @@ void startServer(std::vector<class ServerData> &servers){
 	}
 }
 
+std::vector<ServerData> parseConfigFile(const std::string& filename) {
+    std::vector<ServerData> servers;
+    std::ifstream file(filename);
+    std::string line;
+
+    while (std::getline(file, line)) {
+        if (line.empty()) // Skip empty lines
+            continue;
+        if (line.find("[server]") != std::string::npos) {
+            int location_number = 1;
+            ServerData server; // Start of a new server block
+            while (std::getline(file, line)) {
+                if (line.empty()) // End of server block
+                    continue;
+                if (line.find("[server]") != std::string::npos) {
+                    // Found a new server block, push the current server and reset
+                    servers.push_back(server);
+                    server = ServerData();
+                    location_number = 1;
+                    continue; // Continue to process the new server block
+                }
+                std::istringstream line_stream(line);
+                std::string key, value;
+                line_stream >> key >> value;
+                if (std::strstr(key.c_str(), "port") != nullptr)
+                    server.parse_server_ports(value, server);
+                else if (std::strstr(key.c_str(), "serverName") != nullptr)
+				{
+					std::string value2 = value.substr(0, value.find_first_of(";"));
+                    server.setServerName(value2);
+				}
+                else if (std::strstr(key.c_str(), "host") != nullptr)
+				{
+					std::string value2 = value.substr(0, value.find_first_of(";"));
+                    server.setHost(value2);
+				}
+                else if (std::strstr(key.c_str(), "maxBodySize") != nullptr)
+                    server.setmaxBodySize(value);
+                if (std::strstr(line.c_str(), "location:") != nullptr) {
+                    int start = line.find_first_of("(") + 1;
+                    int end = line.find_first_of(")");
+                    location khalil(line.substr(start, end - start)); //Storing location
+                    for (size_t i = 0; i < 6; i++) {
+                        if (!std::getline(file, line) || line.empty())
+                            break;
+                        if (std::strstr(line.c_str(), "root") != nullptr) {
+                            start = line.find_first_of("=") + 1;
+                            khalil.addDirective("root", line.substr(start, line.size() - start - 1));
+                        } else if (std::strstr(line.c_str(), "index") != nullptr) {
+                            start = line.find_first_of("=") + 1;
+                            khalil.addDirective("index", line.substr(start, line.size() - start - 1));
+                        } else if (std::strstr(line.c_str(), "cgi_extentions") != nullptr) {
+                            start = line.find_first_of("=") + 1;
+                            khalil.addDirective("cgi_extentions", line.substr(start, line.size() - start - 1));
+                        } else if (std::strstr(line.c_str(), "autoIndex") != nullptr) {
+                            start = line.find_first_of("=") + 1;
+                            if (std::strstr(line.c_str(), "on") != nullptr)
+                                khalil.addDirective("autoIndex", "on");
+                            else
+                                khalil.addDirective("autoIndex", "off");
+                        } else if (std::strstr(line.c_str(), "upload_path") != nullptr) {
+                            start = line.find_first_of("=") + 1;
+                            khalil.addDirective("upload_path", line.substr(start, line.size() - start - 1));
+                        } else if (std::strstr(line.c_str(), "acceptedMethods") != nullptr) {
+                            start = line.find_first_of("=") + 1;
+                            khalil.addDirective("acceptedMethods", line.substr(start, line.size() - start - 1));
+                        }
+                    }
+                    server.addLocation(khalil); // Add location to server
+                    location_number++;
+                }
+            }
+            servers.push_back(server); // Add the last server block to the vector of servers
+        }
+    }
+    return servers;
+}
+
+void printServers(std::vector<ServerData>& servers) {
+    for (size_t i = 0; i < servers.size(); i++) {
+        std::cout << std::endl << "[ SERVER " << i << " ]\n";
+        servers[i].printport();
+        std::cout << servers[i].getServerName() << "  (server name)\n";
+        std::cout << servers[i].getHost() << "  (host)\n";
+        std::cout << servers[i].getMaxBodySize() << "  (Max Size)\n";
+
+        std::vector<location> locations = servers[i].getLocation();
+        std::cout << "------ Locations ------\n";
+        for (std::vector<location>::iterator it = locations.begin(); it != locations.end(); ++it) {
+            std::cout << "[ LOCATION " << i << " ]\n";
+            it->printDirectives();
+            std::cout << "-----------------------\n";
+        }
+        std::cout << "-----------------------\n";
+    }
+}
+
+
 int main(int ac, char **av){
 	if (ac != 2){
 		std::cerr << "invalid args\n";
@@ -114,50 +212,59 @@ int main(int ac, char **av){
 	(void) av;
 	///parsing
 	
-	std::vector<class ServerData> servers;
+    // 
+	// printServers(servers);
+	// exit(0);
+
 	//serv1
 	std::vector<int> ports1;
 	ports1.push_back(8080);
 	ports1.push_back(8081);
-	ServerData serv1("serv1", "127.0.0.1", ports1, 10000000);
-	//
-	location lo1("/");
-	lo1.addDirective("root", "Sites-available/Server_1");
-	lo1.addDirective("acceptedMethods", "POST,GET,DELETE");
-	lo1.addDirective("upload_path", "Sites-available/Server_1/Uploads");
-	lo1.addDirective("autoIndex", "on");
-	serv1.addLoc(lo1);
-	//
-	location lo2("/dir/");
-	lo2.addDirective("acceptedMethods", "POST,GET");
-	lo2.addDirective("root", "Sites-available/Server_1/dir");
-	lo2.addDirective("autoIndex", "off");
-	// lo2.addDirective("return", "/");	
-	serv1.addLoc(lo2);
-	//
-	location loc3("/Uploads/");
-	loc3.addDirective("root", "Sites-available/Server_1/Uploads");
-	loc3.addDirective("acceptedMethods", "POST,GET");
-	loc3.addDirective("autoIndex", "on");
-	serv1.addLoc(loc3);
-	// Location loc1;
-	// loc1.path = "/";
-	// serv1.addLocation(loc1);
-	// Location loc2;
-	// loc2.path = "/jj/";
-	// serv1.addLocation(loc2);
+	// ServerData serv1("serv1", "127.0.0.1", ports1, 10000000);
 	
-	servers.push_back(serv1);
-	//serv2
-	std::vector<int> ports2;
-	ports2.push_back(8082);
-	ports2.push_back(8083);
-	ServerData serv2("serv2", "127.0.0.1", ports2, 0);
-	servers.push_back(serv2);
+	std::vector<class ServerData> servers;
+	// servers.push_back(serv1);
+	servers = parseConfigFile("ourconfig.conf");
+	
+	
+	// //
+	// location lo1("/");
+	// lo1.addDirective("root", "Sites-available/Server_1");
+	// lo1.addDirective("acceptedMethods", "POST,GET,DELETE");
+	// lo1.addDirective("upload_path", "Sites-available/Server_1/Uploads");
+	// lo1.addDirective("autoIndex", "on");
+	// serv1.addLoc(lo1);
+	// //
+	// location lo2("/dir/");
+	// lo2.addDirective("acceptedMethods", "POST,GET");
+	// lo2.addDirective("root", "Sites-available/Server_1/dir");
+	// lo2.addDirective("autoIndex", "off");
+	// // lo2.addDirective("return", "/");	
+	// serv1.addLoc(lo2);
+	// //
+	// location loc3("/Uploads/");
+	// loc3.addDirective("root", "Sites-available/Server_1/Uploads");
+	// loc3.addDirective("acceptedMethods", "POST,GET");
+	// loc3.addDirective("autoIndex", "on");
+	// serv1.addLoc(loc3);
+	// // Location loc1;
+	// // loc1.path = "/";
+	// // serv1.addLocation(loc1);
+	// // Location loc2;
+	// // loc2.path = "/jj/";
+	// // serv1.addLocation(loc2);
+	
+	// servers.push_back(serv1);
+	// //serv2
+	// std::vector<int> ports2;
+	// ports2.push_back(8082);
+	// ports2.push_back(8083);
+	// ServerData serv2("serv2", "127.0.0.1", ports2, 0);
+	// servers.push_back(serv2);
 
 	// std::cout << "server start listening on port 8080\n";
 	// // sockets.push_back(serv2.getServSockets());
 	startServer(servers);
 	// close(servfd);
 	return (0);
-}
+} 

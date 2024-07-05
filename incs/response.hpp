@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: khaimer <khaimer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:06 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/07/05 15:55:22 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/07/05 19:56:43 by khaimer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -549,18 +549,18 @@ class response{
 			}
 		}
 		
-// 		bool locationHasCgi(std::string fullPath){
-// 			// check if the fullPath has py in the end
-// 			size_t dotPos = fullPath.find_last_of('.');
-// 			if (dotPos == std::string::npos || dotPos == 0) {
-// 				return false;
-// 			}
-// 			std::string extension = fullPath.substr(dotPos + 1);
-// 			if (extension == "py")
-// 				return (true);
-// 			else
-// 				return (false);
-// 		}
+		bool locationHasCgi(std::string fullPath){
+			// check if the fullPath has py in the end
+			size_t dotPos = fullPath.find_last_of('.');
+			if (dotPos == std::string::npos || dotPos == 0) {
+				return false;
+			}
+			std::string extension = fullPath.substr(dotPos + 1);
+			if (extension == "py")
+				return (true);
+			else
+				return (false);
+		}
 // 		bool list_directory(std::string &dir_path) {
 
 //     statusLine = "HTTP/1.1 200 OK";
@@ -847,7 +847,7 @@ bool handle_delete(request &req , location &loc)
 								handlePost(req, loc);
 							else if (req.getMethod() ==request::GET)
 								handleGet(req, loc);
-							if(req.getMethod() == request::DELETE)
+							else if(req.getMethod() == request::DELETE)
 								handle_delete(req,loc);
 							else{ 
 								statusLine = "HTTP/1.1 200 OK";

@@ -3,15 +3,53 @@
 /*                                                        :::      ::::::::   */
 /*   ServerData.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: khaimer <khaimer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 18:47:10 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/23 23:06:53 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/07/05 20:48:52 by khaimer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incs/ServerData.hpp"
 #include <cstdlib>
+
+
+size_t    ServerData::getMaxBodySize() const
+{
+    return this->maxBodySize;
+}
+
+void	ServerData::setHost(std::string const& Value)
+{
+   this->host = Value;
+}
+
+void    ServerData::setServerName(std::string const& Value)
+{
+    this->serverName = Value;
+}
+
+void ServerData::parse_server_ports(const std::string& ports, ServerData& server) 
+{
+  std::string port_str = ports;
+
+    // std::cout << port_str << "   << HERE\n";
+  size_t split = port_str.find(',');
+  while (split != std::string::npos) 
+  {
+    std::string port_number = port_str.substr(0, split);
+    int port = std::atoi(port_number.c_str());
+    server.ports.push_back(port);
+    port_str = port_str.substr(split + 1); // Remove the extracted part from the remaining string
+    split = port_str.find(',');
+  }
+  if (!port_str.empty()) // Handle the last port (if no comma)
+  {
+    int port = std::atoi(port_str.c_str());
+    if (port)
+        server.ports.push_back(port);
+  }
+}
 
 ServerData::ServerData(std::string servName, std::string ho, std::vector<int> portss, size_t mbz)
 	: serverName(servName), host(ho), ports(portss), maxBodySize(mbz) {
@@ -44,6 +82,11 @@ std::vector<int> &ServerData::getServSockets(){
 	return (servSockets);
 }
 
+void ServerData::addLocation(location locationData)
+{
+    this->locs.push_back(locationData);
+}
+
 void setnonblocking(int sock)
 {
 	int opts;
@@ -61,23 +104,17 @@ void setnonblocking(int sock)
 	return;
 }
 
-void ServerData::addLocation(Location loc){
-	locations.push_back(loc);
-}
-
-std::string ServerData::getServerName() const {
+std::string ServerData::getServerName() const
+{
 	return (serverName);
 }
 
-std::string ServerData::getHost() const {
-	return (host);
+std::vector<location> ServerData::getLocation() const{
+	return (locs);
 }
 
-std::vector<Location> ServerData::getLocation() const{
-	return (locations);
-}
-
-std::vector<int> ServerData::getPorts() const {
+std::vector<int> ServerData::getPorts() const 
+{
 	return (ports);
 }
 
@@ -90,6 +127,12 @@ bool ServerData::isIaSocket(int i){
 	return (false);
 }
 
-size_t ServerData::getMaxBodySize(){
-	return (maxBodySize);
+void	ServerData::setmaxBodySize(std::string const& Value)
+{
+    this->maxBodySize = std::stoull(Value);
+}
+
+std::string ServerData::getHost() const
+{
+    return this->host;
 }
