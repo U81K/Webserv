@@ -268,12 +268,14 @@ void parseLocationData(std::ifstream& file, std::string& line, location& loc) {
         if (!std::getline(file, line) || line.empty()) break;
         start = line.find_first_of("=") + 1;
         std::string directive = trim(line.substr(start, line.size() - start - 1));
-        // if (valid_agrument(directive)) 
-		// {
-		// 	std::cout << "THIS IS THE LINE  {" << line << "}" << std::endl;
-        //     std::cout << "Invalid config file" << std::endl;
-        //     exit(0);
-        // }
+		if(!line.compare("}"))
+			continue;
+        if (valid_agrument(directive)) 
+		{
+			std::cout << "THIS IS THE LINE  {" << line << "}" << std::endl;
+            std::cout << "Invalid config file" << std::endl;
+            exit(0);
+        }
         if (std::strstr(line.c_str(), "root") != NULL)
             loc.addDirective("root", directive);
         else if (std::strstr(line.c_str(), "index") != NULL)
