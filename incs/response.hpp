@@ -669,11 +669,11 @@ class response{
 		headers["Content-Length"] = "33";
 
 	}
-	void moved_permanently{
-			statusLine = "HTTP/1.1 301 Moved Permanently";
-						headers["Location"] = req.getUrl() + "/";
-						body = "Moved Permanently";
-						headers["Content-Length"] = "17";
+	void moved_permanently(request req){
+		statusLine = "HTTP/1.1 301 Moved Permanently";
+		headers["Location"] = req.getUrl() + "/";
+		body = "Moved Permanently";
+		headers["Content-Length"] = "17";
 
 	}
 	ultimate info(std::string res_path)
@@ -691,8 +691,8 @@ class response{
 	ultimate mode;
 	bool get_resources(request & req,location loc)
 	{
-		auto_index = loc.getDirective("autoIndex").compare("on") ;
-		path = loc.getDirective("root") + removeLoc(req) + req.getUrl();
+		auto_index = !loc.getDirective("autoIndex").compare("on") ;
+		path = loc.getDirective("root") + removeLoc(req);
 		int q_pos = path.find("?");
 		if (q_pos != static_cast<int>(std::string::npos)){
 				query_string = path.substr(q_pos + 1, path.size());
@@ -711,99 +711,117 @@ class response{
 		}
 		else
 		{
-			std::string line ;
-			std::ifstream file_(path + "/index.html");
-			if(auto_index){
-				if(info(path + "/index.html").is_file ){
-					std::ostringstream file_content;
+			if(mode.is_dir)
+			{
+				if(path.at(path.size() - 1) == '/'){		
+					std::string line ;
+					std::ifstream file_(path + "/index.html");
+					if(info(path + "/index.html").is_file){
+						std::ostringstream file_content;
+						statusLine = "HTTP/1.1 200 OK";
+						while(std::getline(file_,line)){
+							body += line + '\n';
+							std::cout << line << std::endl;
+						}
+					}
+					else if(auto_index)
+						list_directory(path);
+					else
+						Forbidden();
+					headers["Content-Length"] = to_string(body.size());
+					return(true);
+				}
+				else
+					moved_permanently(req);
+					// headers["Content-Length"] = to_string(body.size());
+				
+			}
+			else if(mode.is_file){
+				if (locationHasCgi(path))
+						cgiGet(path, query_string);
+				else{
 					statusLine = "HTTP/1.1 200 OK";
-					while(std::getline(file_,line))
-					{
+					std::ifstream file_(path.c_str());
+					std::string line;
+					while(std::getline(file_,line)){
 						body += line + '\n';
 						std::cout << line << std::endl;
 					}
+					headers["Content-Length"] = to_string(body.size());
 				}
-				else if(mode.is_dir)
-					list_directory(path);
-				headers["Content-Length"] = to_string(body.size());
+			}
 				return(true);
 			}
-			else
-			{
-				Forbidden();
-				return(true);
-			}
-			headers["Content-Length"] = to_string(body.size());    
-			return(true);
-		}
-	}
-		void handleGet(request &req, location loc){
-			// std::cout << "handel get bad trip";
-			std::string fullPath = loc.getDirective("root") + removeLoc(req);
-			struct stat statbuf;
-			std::string fileContent;
 			
-			int questionPos = fullPath.find("?");
-			std::string query = "";
-			if (questionPos != static_cast<int>(std::string::npos)){
-				query = fullPath.substr(questionPos + 1, fullPath.size());
-				fullPath = fullPath.substr(0, questionPos);
-			}
-			// std::cout << "fullPath requested = " << fullPath << std::endl;
-			// std::cout << "query = " << query << std::endl;
-			std::cout << fullPath << std::endl;
-			if (stat(fullPath.c_str(), &statbuf) != 0){//does not exist
-				statusLine = "HTTP/1.1 404 Not Found";
-				headers["Content-Length"] = "29";
-				body = "404 Not Found from handle get";
-			}
-			else {
-				if (S_ISDIR(statbuf.st_mode)){//is a directory
-					//check if the path end with "/"
-					if (fullPath.at(fullPath.size() - 1) == '/'){
-						//checking if dir has index file
-						std::string indexPath = fullPath + "/index.html";
-						if (isFile(indexPath)){
-							std::string indexContent = readFromFile(indexPath);
-							if (!indexContent.empty()) {
-								statusLine = "HTTP/1.1 200 OK";
-								body = indexContent;
-								headers["Content-Length"] = to_string(indexContent.size());
-							}
-						}
-						else if (loc.getDirective("autoIndex").compare("on") == 0){//check if location has autoindex
-							std::cout << "kayen auto index\n";
-							std::string directoryListing = generateDirectoryListing(fullPath);
-							statusLine = "HTTP/1.1 200 OK";
-							body = directoryListing;
-							headers["Content-Length"] = to_string(body.size());
-						}
-						else {
-							statusLine = "HTTP/1.1 403 Forbidden";
-							body  = "Directory listing is not allowed.";
-							headers["Content-Length"] = "33";
-						}
-					}
-					else{
-						statusLine = "HTTP/1.1 301 Moved Permanently";
-						headers["Location"] = req.getUrl() + "/";
-						body = "Moved Permanently";
-						headers["Content-Length"] = "17";
-					}
-				}
-				else if (S_ISREG(statbuf.st_mode)){//is a file.
-					if (locationHasCgi(fullPath)){
-						cgiGet(fullPath, query);
-					}
-					else{
-						fileContent = readFromFile(fullPath);
-						statusLine = "HTTP/1.1 200 OK";
-						body = fileContent;
-						headers["Content-Length"] = to_string(fileContent.size());
-					}
-				}
-			}
 		}
+	
+		// void handleGet(request &req, location loc){
+		// 	// std::cout << "handel get bad trip";
+		// 	std::string fullPath = loc.getDirective("root") + removeLoc(req);
+		// 	struct stat statbuf;
+		// 	std::string fileContent;
+			
+		// 	int questionPos = fullPath.find("?");
+		// 	std::string query = "";
+		// 	if (questionPos != static_cast<int>(std::string::npos)){
+		// 		query = fullPath.substr(questionPos + 1, fullPath.size());
+		// 		fullPath = fullPath.substr(0, questionPos);
+		// 	}
+		// 	// std::cout << "fullPath requested = " << fullPath << std::endl;
+		// 	// std::cout << "query = " << query << std::endl;
+		// 	std::cout << fullPath << std::endl;
+		// 	if (stat(fullPath.c_str(), &statbuf) != 0){//does not exist
+		// 		statusLine = "HTTP/1.1 404 Not Found";
+		// 		headers["Content-Length"] = "29";
+		// 		body = "404 Not Found from handle get";
+		// 	}
+		// 	else {
+		// 		if (S_ISDIR(statbuf.st_mode)){//is a directory
+		// 			//check if the path end with "/"
+		// 			if (fullPath.at(fullPath.size() - 1) == '/'){
+		// 				//checking if dir has index file
+		// 				std::string indexPath = fullPath + "/index.html";
+		// 				if (isFile(indexPath)){
+		// 					std::string indexContent = readFromFile(indexPath);
+		// 					if (!indexContent.empty()) {
+		// 						statusLine = "HTTP/1.1 200 OK";
+		// 						body = indexContent;
+		// 						headers["Content-Length"] = to_string(indexContent.size());
+		// 					}
+		// 				}
+		// 				else if (loc.getDirective("autoIndex").compare("on") == 0){//check if location has autoindex
+		// 					std::cout << "kayen auto index\n";
+		// 					std::string directoryListing = generateDirectoryListing(fullPath);
+		// 					statusLine = "HTTP/1.1 200 OK";
+		// 					body = directoryListing;
+		// 					headers["Content-Length"] = to_string(body.size());
+		// 				}
+		// 				else {
+		// 					statusLine = "HTTP/1.1 403 Forbidden";
+		// 					body  = "Directory listing is not allowed.";
+		// 					headers["Content-Length"] = "33";
+		// 				}
+		// 			}
+		// 			else{
+		// 				statusLine = "HTTP/1.1 301 Moved Permanently";
+		// 				headers["Location"] = req.getUrl() + "/";
+		// 				body = "Moved Permanently";
+		// 				headers["Content-Length"] = "17";
+		// 			}
+		// 		}
+		// 		else if (S_ISREG(statbuf.st_mode)){//is a file.
+		// 			if (locationHasCgi(fullPath)){
+		// 				cgiGet(fullPath, query);
+		// 			}
+		// 			else{
+		// 				fileContent = readFromFile(fullPath);
+		// 				statusLine = "HTTP/1.1 200 OK";
+		// 				body = fileContent;
+		// 				headers["Content-Length"] = to_string(fileContent.size());
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 	bool delete_directory(const std::string &path) {
     //https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
@@ -896,7 +914,7 @@ bool handle_delete(request &req , location &loc)
 							if (req.getMethod() == request::POST)
 								handlePost(req, loc);
 							else if (req.getMethod() ==request::GET)
-								handleGet(req, loc);
+								handel_get(req, loc);
 							else if(req.getMethod() == request::DELETE)
 								handle_delete(req,loc);
 							else{ 
