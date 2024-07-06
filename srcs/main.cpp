@@ -244,6 +244,11 @@ void parseServerData(const std::string& line, ServerData& server) {
     std::istringstream line_stream(line);
     std::string key, value;
     line_stream >> key >> value;
+	// if(value.empty())
+	// 	{
+	// 		std::cerr << "err" << std::endl;
+	// 		std::exit(0);
+	// 	}
 	// if(check_if_valid(line))
 	// {
 	// 	std::cerr << "baaad trip !!" << std::endl;
@@ -260,7 +265,6 @@ void parseServerData(const std::string& line, ServerData& server) {
     } else if (std::strstr(key.c_str(), "maxBodySize") != NULL) 
 	{
         std::string value2 = value.substr(0, value.find_first_of(";"));
-		std::cout << " . " << value << std::endl;
         server.setmaxBodySize(value2);
     }
 }
@@ -290,7 +294,6 @@ void parseLocationData(std::ifstream& file, std::string& line, location& loc) {
 			continue;
         if (valid_agrument(directive)) 
 		{
-			std::cout << "THIS IS THE LINE  {" << line << "}" << std::endl;
             std::cout << "Invalid config file" << std::endl;
             exit(0);
         }

@@ -12,6 +12,8 @@
 
 #include "../incs/ServerData.hpp"
 #include <cstdlib>
+#include<sstream>
+
 
 
 size_t    ServerData::getMaxBodySize() const
@@ -131,14 +133,16 @@ bool ServerData::isIaSocket(int i){
 	}
 	return (false);
 }
-#include<sstream>
 
 void    ServerData::setmaxBodySize(std::string const& Value)
 {
     std::stringstream sstream(Value);
     size_t result;
     sstream >> result;
-	std::cout << "{" << Value << "}  HERE <<<" << std::endl; 
+	if(Value.empty()){
+		std::cout << "bad trip !" << std::endl;
+		std::exit(1);
+	}
     this->maxBodySize = result;
 }
 std::string ServerData::getHost() const
