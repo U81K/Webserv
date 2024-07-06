@@ -110,7 +110,7 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
     std::vector<ServerData> servers;
     std::ifstream file(filename.c_str());
     std::string line;
-	int complite = 0;
+	// int complite = 0;
 
     while (std::getline(file, line)) {
         if (line.empty()) // Skip empty lines
@@ -123,6 +123,7 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
                     continue;
                 if (line.find("[server]") != std::string::npos) {
                     // Found a new server block, push the current server and reset
+					server.start_listen();
                     servers.push_back(server);
                     server = ServerData();
                     location_number = 1;
@@ -133,36 +134,24 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
                 line_stream >> key >> value;
                 if (std::strstr(key.c_str(), "port") != NULL)
 				{
-					complite++;
                 	server.parse_server_ports(value, server);
-					if(complite == 4)
-						server.start_listen();
-						// server(server.getServerName(),server.getHost(),server.getPorts(),10000000);
-
 				}
 				else if (std::strstr(key.c_str(), "serverName") != NULL)
 				{
 					
 					std::string value2 = value.substr(0, value.find_first_of(";"));
                     server.setServerName(value2);
-					complite++;
-					if(complite == 4)
-						server.start_listen();
+	
 				}
                 else if (std::strstr(key.c_str(), "host") != NULL)
 				{
 					std::string value2 = value.substr(0, value.find_first_of(";"));
                     server.setHost(value2);
-					complite++;
-					if(complite == 4)
-						server.start_listen();
+
 				}
                 else if (std::strstr(key.c_str(), "maxBodySize") != NULL)
 				{
                     server.setmaxBodySize(value);
-					complite++;
-					if(complite == 4)
-						server.start_listen();
 				}
                 if (std::strstr(line.c_str(), "location:") != NULL) {
                     int start = line.find_first_of("(") + 1;
@@ -199,6 +188,7 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
                     location_number++;
                 }
             }
+			server.start_listen();
             servers.push_back(server); // Add the last server block to the vector of servers
         }
     }
@@ -208,10 +198,13 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
 void printServers(std::vector<ServerData>& servers) {
     for (size_t i = 0; i < servers.size(); i++) {
         std::cout << std::endl << "[ SERVER " << i << " ]\n";
+		std::cout << "\'";
         servers[i].printport();
-        std::cout << servers[i].getServerName() << "  (server name)\n";
-        std::cout << servers[i].getHost() << "  (host)\n";
-        std::cout << servers[i].getMaxBodySize() << "  (Max Size)\n";
+		std::cout << "\'";
+
+		std::cout << "\'" << servers[i].getServerName() << "\'" << "  (server name)\n";
+        std::cout << "\'" << servers[i].getHost() << "\'" << "  (host)\n";
+        std::cout << "\'" << servers[i].getMaxBodySize() << "\'" << "  (Max Size)\n";
 
         std::vector<location> locations = servers[i].getLocation();
         std::cout << "------ Locations ------\n";
@@ -246,7 +239,7 @@ int main(int ac, char **av){
 	std::vector<class ServerData> servers;
 	// servers.push_back(serv1);
 	servers = parseConfigFile("ourconfig.conf");
-	
+	printServers(servers);
 	
 	// //
 	// location lo1("/");

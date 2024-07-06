@@ -100,8 +100,8 @@ class ServerData{
 		void	printport() //solo
 		{
 			for (size_t i = 0; i < this->ports.size(); i++)
-			    std::cout << this->ports[i] << " ";
-			std::cout << "(port)\n";
+			    std::cout << this->ports[i];
+			// std::cout << "(port)\n";
 		}
 };
 

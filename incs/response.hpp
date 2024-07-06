@@ -690,6 +690,7 @@ class response{
 // 		}
 // 	}
 		void handleGet(request &req, location loc){
+			std::cout << "handel get bad trip";
 			std::string fullPath = loc.getDirective("root") + removeLoc(req);
 			struct stat statbuf;
 			std::string fileContent;

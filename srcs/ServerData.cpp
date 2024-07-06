@@ -131,12 +131,15 @@ bool ServerData::isIaSocket(int i){
 	}
 	return (false);
 }
+#include<sstream>
 
-void	ServerData::setmaxBodySize(std::string const& Value)
+void    ServerData::setmaxBodySize(std::string const& Value)
 {
-    this->maxBodySize = static_cast<size_t>(Value.size());
+    std::stringstream sstream(Value);
+    size_t result;
+    sstream >> result;
+    this->maxBodySize = result;
 }
-
 std::string ServerData::getHost() const
 {
     return this->host;
