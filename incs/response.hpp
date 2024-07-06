@@ -16,6 +16,7 @@
 #include <iostream>
 #include <map>
 #include "../incs/request.hpp"
+#include <string>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include "ServerData.hpp"
@@ -561,67 +562,82 @@ class response{
 			else
 				return (false);
 		}
-// 		bool list_directory(std::string &dir_path) {
+	std::string generateListItems(const std::string &fileAndDirNames) 
+	{
+		std::string Items;
+		std::istringstream Toread(fileAndDirNames);
+		std::string Name;
+		
+		while (std::getline(Toread,Name)) 
+		{
+			std::string CompletPath = Name;
+			Items += "<li><a href=\"" + CompletPath + "\">" + CompletPath + "</a></li>\n";
+		}
+		return Items;
+	}
 
-//     statusLine = "HTTP/1.1 200 OK";
-//     // body += "Index of " + dir_path + "\n\r";
-//     DIR *dir = opendir(dir_path.c_str());
-//     if (dir == nullptr) {
-//         return false;
-//     }
-//     struct dirent *output;
-//     while ((output = readdir(dir)) != NULL) {
-//         std::string name = output->d_name;
-//         if (name == "." || name == "..") {
-//             continue;
-            
-//         }
-//         body += name + "\n";
-//     }
-//     std::string htmlContent =
-//     "<!DOCTYPE html>\n"
-//     "<html lang=\"en\">\n"
-//     "<head>\n"
-//     "    <meta charset=\"UTF-8\">\n"
-//     "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-//     "    <title>Directory Listing</title>\n"
-//     "    <style>\n"
-//     "        body {\n"
-//     "            font-family: Arial, sans-serif;\n"
-//     "            margin: 20px;\n"
-//     "        }\n"
-//     "        h1 {\n"
-//     "            margin-bottom: 20px;\n"
-//     "        }\n"
-//     "        ul {\n"
-//     "            list-style-type: none;\n"
-//     "            padding: 0;\n"
-//     "        }\n"
-//     "        li {\n"
-//     "            margin-bottom: 10px;\n"
-//     "        }\n"
-//     "        a {\n"
-//     "            text-decoration: none;\n"
-//     "            color: #007bff;\n"
-//     "        }\n"
-//     "    </style>\n"
-//     "</head>\n"
-//     "<body>\n"
-//     "    <h1>Directory Listing</h1>\n"
-//     "    <ul>\n"
-//         + generateListItems(body) +
-//     "    </ul>\n"
-//     "</body>\n"
-//     "</html>\n";
-//     closedir(dir);
-//     // body += "</ul>\n</body>\n</html>";
-//     body = htmlContent;
-//     std::cout << body << std::endl;
-//     // std::string size = "" + body.size();
-//     std::cout << "body = " << body << std::endl;
-//     headers["Content-Length"] = std::to_string(body.size());
-//     return true;
-// }
+
+
+	bool list_directory(std::string &dir_path) {
+
+		statusLine = "HTTP/1.1 200 OK";
+		// body += "Index of " + dir_path + "\n\r";
+		DIR *dir = opendir(dir_path.c_str());
+		if (dir == NULL) {
+			return false;
+		}
+		struct dirent *output;
+		while ((output = readdir(dir)) != NULL) {
+			std::string name = output->d_name;
+			if (name == "." || name == "..") {
+				continue;
+			}
+			body += name + "\n";
+		}
+		std::string htmlContent =
+		"<!DOCTYPE html>\n"
+		"<html lang=\"en\">\n"
+		"<head>\n"
+		"    <meta charset=\"UTF-8\">\n"
+		"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+		"    <title>Directory Listing</title>\n"
+		"    <style>\n"
+		"        body {\n"
+		"            font-family: Arial, sans-serif;\n"
+		"            margin: 20px;\n"
+		"        }\n"
+		"        h1 {\n"
+		"            margin-bottom: 20px;\n"
+		"        }\n"
+		"        ul {\n"
+		"            list-style-type: none;\n"
+		"            padding: 0;\n"
+		"        }\n"
+		"        li {\n"
+		"            margin-bottom: 10px;\n"
+		"        }\n"
+		"        a {\n"
+		"            text-decoration: none;\n"
+		"            color: #007bff;\n"
+		"        }\n"
+		"    </style>\n"
+		"</head>\n"
+		"<body>\n"
+		"    <h1>Directory Listing</h1>\n"
+		"    <ul>\n"
+			+ generateListItems(body) +
+		"    </ul>\n"
+		"</body>\n"
+		"</html>\n";
+		closedir(dir);
+		// body += "</ul>\n</body>\n</html>";
+		body = htmlContent;
+		std::cout << body << std::endl;
+		// std::string size = "" + body.size();
+		std::cout << "body = " << body << std::endl;
+		headers["Content-Length"] = to_string(body.size());
+		return true;
+	}
 // bool isLocationHaveRedi(location loc){
 //     std::string dir = loc.getDirective("return");
 //     if (dir.size() > 0){
@@ -631,66 +647,98 @@ class response{
 //     }
 //     return (false);
 // }
-// bool get_resources(request & req)
-// {
-//     root = "www";
-//     is_dir = true;
-//     auto_index = false ;
-//     path = "./" + root + req.getUrl();
-//     // (void) req;
-// // 	//  ia makanch l file fe root err 
-// // 	// std::string root = "";
-// // 	root = "/www";
-// // 	path = "." + root +req.getUrl();
-// // 	std::cout << "\033[36m";
-// // 	std::cout << "root path " << path << std::endl;
-// // 	// std::string path = "." + req.getUrl();
-// // 	struct stat object_stat;
-// // 	// object_stat.
-// // 	if(stat(path.c_str(),&object_stat) != 0)
-// // 		return false;
-//     return true;
-// }
-// 	bool handel_get(request &req, ServerData &serv){
-// 		(void) serv;
-// 		if(!get_resources(req))
-// 		{
-// 			notFound(req);
-// 			return false;
-// 		}
-// 		else
-// 		{
-// 			// std::cout << "\n\n\n\n"<< "bad trip" << req.getUrl() << "\n\n\n\n\n\n\n";
-// 			std::string line ;
-// 			std::ifstream file_("www/index.html");
-// 			if(auto_index){
-// 				std::ostringstream file_content;
-// 				statusLine = "HTTP/1.1 200 OK";
-// 				// file_content << "www/index.html";
-// 				while(std::getline(file_,line))
-// 				{
-// 					body += line + '\n';
-// 					std::cout << line << std::endl;
 
-// 				}
-// 				headers["Content-Length"] = std::to_string(body.size());
-// 				return(true);
-// 			}
-// 			else if(is_dir)
-// 				list_directory(path);
-// 			else {
-// 					std::ifstream  zeb(path);
-// 					std::string line ;
-// 					statusLine = "HTTP/1.1 200 OK";
-// 					while(getline(zeb,line))
-// 						body += line + "\n";
-// 			}
-// 			headers["Content-Length"] = std::to_string(body.size());    
-// 			return(true);
-// 		}
-// 	}
+	bool is_dir;
+	bool auto_index;
+	std::string path;
+	std::string query_string;
+	
+	typedef struct ultimate{
+		bool badtrip;
+		bool is_file;
+		bool is_dir;
+		bool read_per;
+		bool exec_per;
+		bool write_per;
+	} ultimate;
+	
+	void Forbidden()
+	{
+		statusLine = "HTTP/1.1 403 Forbidden";
+		body  = "Directory listing is not allowed.";
+		headers["Content-Length"] = "33";
+
+	}
+	void moved_permanently{
+			statusLine = "HTTP/1.1 301 Moved Permanently";
+						headers["Location"] = req.getUrl() + "/";
+						body = "Moved Permanently";
+						headers["Content-Length"] = "17";
+
+	}
+	ultimate info(std::string res_path)
+	{
+		ultimate res;
+		struct stat st;
+		res.badtrip = (stat(res_path.c_str(), &st) != 0);
+		res.is_file = S_ISREG(st.st_mode);
+		res.is_dir = S_ISDIR(st.st_mode);
+		// res.read_per =;
+		// res.
+		return res;
+
+	}
+	ultimate mode;
+	bool get_resources(request & req,location loc)
+	{
+		auto_index = loc.getDirective("autoIndex").compare("on") ;
+		path = loc.getDirective("root") + removeLoc(req) + req.getUrl();
+		int q_pos = path.find("?");
+		if (q_pos != static_cast<int>(std::string::npos)){
+				query_string = path.substr(q_pos + 1, path.size());
+				path = path.substr(0, q_pos);
+			}
+		// struct stat st; 
+		mode = info(path); 
+		if(mode.badtrip)
+			return false;
+		return true;
+	}
+	bool handel_get(request &req, location loc){
+		if(!get_resources(req,loc)){
+			notFound(req);
+			return true;
+		}
+		else
+		{
+			std::string line ;
+			std::ifstream file_(path + "/index.html");
+			if(auto_index){
+				if(info(path + "/index.html").is_file ){
+					std::ostringstream file_content;
+					statusLine = "HTTP/1.1 200 OK";
+					while(std::getline(file_,line))
+					{
+						body += line + '\n';
+						std::cout << line << std::endl;
+					}
+				}
+				else if(mode.is_dir)
+					list_directory(path);
+				headers["Content-Length"] = to_string(body.size());
+				return(true);
+			}
+			else
+			{
+				Forbidden();
+				return(true);
+			}
+			headers["Content-Length"] = to_string(body.size());    
+			return(true);
+		}
+	}
 		void handleGet(request &req, location loc){
-			std::cout << "handel get bad trip";
+			// std::cout << "handel get bad trip";
 			std::string fullPath = loc.getDirective("root") + removeLoc(req);
 			struct stat statbuf;
 			std::string fileContent;
