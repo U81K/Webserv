@@ -11,6 +11,8 @@
 /* ************************************************************************** */
 
 #include "../incs/webserv.hpp"
+#include <cstddef>
+#include <iostream>
 
 bool isFdOfServers(int fd, std::vector<class ServerData> &servers){
 	for(unsigned int i = 0; i < servers.size(); i++){
@@ -229,11 +231,24 @@ std::string trim(const std::string& str) {
 //     }
 //     return servers;
 // }
+bool check_if_valid(std::string line)
+{
+	size_t trip = line.find("=");
+	std::cout << line[trip] << std::endl;
+	if(line[trip +1] == ' ' && line[trip + 1] < '0' && line[trip + 1] > '9')
+		return false;
+	return true;
+}
 
 void parseServerData(const std::string& line, ServerData& server) {
     std::istringstream line_stream(line);
     std::string key, value;
     line_stream >> key >> value;
+	// if(check_if_valid(line))
+	// {
+	// 	std::cerr << "baaad trip !!" << std::endl;
+	// 	std::exit(0);
+	// }
     if (std::strstr(key.c_str(), "port") != NULL) {
         server.parse_server_ports(value, server);
     } else if (std::strstr(key.c_str(), "serverName") != NULL) {
@@ -242,8 +257,11 @@ void parseServerData(const std::string& line, ServerData& server) {
     } else if (std::strstr(key.c_str(), "host") != NULL) {
         std::string value2 = value.substr(0, value.find_first_of(";"));
         server.setHost(value2);
-    } else if (std::strstr(key.c_str(), "maxBodySize") != NULL) {
-        server.setmaxBodySize(value);
+    } else if (std::strstr(key.c_str(), "maxBodySize") != NULL) 
+	{
+        std::string value2 = value.substr(0, value.find_first_of(";"));
+		std::cout << " . " << value << std::endl;
+        server.setmaxBodySize(value2);
     }
 }
 

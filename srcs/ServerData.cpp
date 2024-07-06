@@ -138,6 +138,7 @@ void    ServerData::setmaxBodySize(std::string const& Value)
     std::stringstream sstream(Value);
     size_t result;
     sstream >> result;
+	std::cout << "{" << Value << "}  HERE <<<" << std::endl; 
     this->maxBodySize = result;
 }
 std::string ServerData::getHost() const
