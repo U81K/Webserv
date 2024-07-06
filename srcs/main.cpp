@@ -231,9 +231,9 @@ int main(int ac, char **av){
 	// exit(0);
 
 	//serv1
-	std::vector<int> ports1;
-	ports1.push_back(8080);
-	ports1.push_back(8081);
+	// std::vector<int> ports1;
+	// ports1.push_back(8080);
+	// ports1.push_back(8081);
 	// ServerData serv1("serv1", "127.0.0.1", ports1, 10000000);
 	
 	std::vector<class ServerData> servers;

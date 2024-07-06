@@ -703,6 +703,7 @@ class response{
 			}
 			// std::cout << "fullPath requested = " << fullPath << std::endl;
 			// std::cout << "query = " << query << std::endl;
+			std::cout << fullPath << std::endl;
 			if (stat(fullPath.c_str(), &statbuf) != 0){//does not exist
 				statusLine = "HTTP/1.1 404 Not Found";
 				headers["Content-Length"] = "29";
