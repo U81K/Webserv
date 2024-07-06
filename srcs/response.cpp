@@ -130,11 +130,14 @@ bool response::foundInAllowedChat(char c){
 			std::string url = getLocation(req.getUrl());
 			// std::cout << url << std::endl;
 			std::vector<location> locs = server.getLocs();
+			// std::cout << locs.size() << std::endl;
+			// std::cout << locs[0].getPath() << std::endl;
 			for(unsigned int i = 0; i < locs.size(); i++){
 				if (url.compare(locs[i].getPath()) == 0){
 					return (true);
 				}
 			}
+			// std::cout<< "here" << std::endl;
 			notFound(req);
 			return (false);
 		}

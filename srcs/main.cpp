@@ -124,6 +124,7 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
                 if (line.find("[server]") != std::string::npos) {
                     // Found a new server block, push the current server and reset
 					server.start_listen();
+					
                     servers.push_back(server);
                     server = ServerData();
                     location_number = 1;
@@ -189,7 +190,9 @@ std::vector<ServerData> parseConfigFile(const std::string& filename) {
                 }
             }
 			server.start_listen();
+			// std::cout << "bad trip! "<< (server.getLocs())[1].getPath() << std::endl;
             servers.push_back(server); // Add the last server block to the vector of servers
+
         }
     }
     return servers;
