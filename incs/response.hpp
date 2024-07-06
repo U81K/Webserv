@@ -638,15 +638,6 @@ class response{
 		headers["Content-Length"] = to_string(body.size());
 		return true;
 	}
-// bool isLocationHaveRedi(location loc){
-//     std::string dir = loc.getDirective("return");
-//     if (dir.size() > 0){
-//         statusLine = "HTTP/1.1 301 Moved Permanently";
-//         headers["Location"] = dir;
-//         return (true);
-//     }
-//     return (false);
-// }
 
 	bool is_dir;
 	bool auto_index;
@@ -713,6 +704,8 @@ class response{
 		}
 		else
 		{
+			if(!mode.read_per)
+				perrmission_denied();
 			if(mode.is_dir)
 			{
 				if(path.at(path.size() - 1) == '/'){		
@@ -756,75 +749,6 @@ class response{
 			}
 			
 		}
-	
-		// void handleGet(request &req, location loc){
-		// 	// std::cout << "handel get bad trip";
-		// 	std::string fullPath = loc.getDirective("root") + removeLoc(req);
-		// 	struct stat statbuf;
-		// 	std::string fileContent;
-			
-		// 	int questionPos = fullPath.find("?");
-		// 	std::string query = "";
-		// 	if (questionPos != static_cast<int>(std::string::npos)){
-		// 		query = fullPath.substr(questionPos + 1, fullPath.size());
-		// 		fullPath = fullPath.substr(0, questionPos);
-		// 	}
-		// 	// std::cout << "fullPath requested = " << fullPath << std::endl;
-		// 	// std::cout << "query = " << query << std::endl;
-		// 	std::cout << fullPath << std::endl;
-		// 	if (stat(fullPath.c_str(), &statbuf) != 0){//does not exist
-		// 		statusLine = "HTTP/1.1 404 Not Found";
-		// 		headers["Content-Length"] = "29";
-		// 		body = "404 Not Found from handle get";
-		// 	}
-		// 	else {
-		// 		if (S_ISDIR(statbuf.st_mode)){//is a directory
-		// 			//check if the path end with "/"
-		// 			if (fullPath.at(fullPath.size() - 1) == '/'){
-		// 				//checking if dir has index file
-		// 				std::string indexPath = fullPath + "/index.html";
-		// 				if (isFile(indexPath)){
-		// 					std::string indexContent = readFromFile(indexPath);
-		// 					if (!indexContent.empty()) {
-		// 						statusLine = "HTTP/1.1 200 OK";
-		// 						body = indexContent;
-		// 						headers["Content-Length"] = to_string(indexContent.size());
-		// 					}
-		// 				}
-		// 				else if (loc.getDirective("autoIndex").compare("on") == 0){//check if location has autoindex
-		// 					std::cout << "kayen auto index\n";
-		// 					std::string directoryListing = generateDirectoryListing(fullPath);
-		// 					statusLine = "HTTP/1.1 200 OK";
-		// 					body = directoryListing;
-		// 					headers["Content-Length"] = to_string(body.size());
-		// 				}
-		// 				else {
-		// 					statusLine = "HTTP/1.1 403 Forbidden";
-		// 					body  = "Directory listing is not allowed.";
-		// 					headers["Content-Length"] = "33";
-		// 				}
-		// 			}
-		// 			else{
-		// 				statusLine = "HTTP/1.1 301 Moved Permanently";
-		// 				headers["Location"] = req.getUrl() + "/";
-		// 				body = "Moved Permanently";
-		// 				headers["Content-Length"] = "17";
-		// 			}
-		// 		}
-		// 		else if (S_ISREG(statbuf.st_mode)){//is a file.
-		// 			if (locationHasCgi(fullPath)){
-		// 				cgiGet(fullPath, query);
-		// 			}
-		// 			else{
-		// 				fileContent = readFromFile(fullPath);
-		// 				statusLine = "HTTP/1.1 200 OK";
-		// 				body = fileContent;
-		// 				headers["Content-Length"] = to_string(fileContent.size());
-		// 			}
-		// 		}
-		// 	}
-		// }
-
 	bool delete_directory(const std::string &path) {
     //https://www.ibm.com/docs/bg/zos/2.4.0?topic=functions-opendir-open-directory
     //https://medium.com/@noransaber685/exploring-directory-operations-opendir-readdir-and-closedir-system-calls-a8fb1b6e67bb
@@ -858,50 +782,40 @@ class response{
     std::remove(path.c_str());
     return true;
 }
+void perrmission_denied(){
+	statusLine = "HTTP/1.1 500 Internal Server Error";
+	body = "perrmission denied";
+	headers["Content-Length"] = to_string(body.size());
+}
 
 bool handle_delete(request &req , location &loc)
 {
    if(get_resources(req,loc))
-    std::cout << "handel delete" << std::endl;
-    std::string path = loc.getDirective("root") + removeLoc(req);
-    struct stat object_stat;
-    // object_stat.
-    if(stat(path.c_str(),&object_stat) != 0)
-        notFound(req);
-    else if(S_ISDIR(object_stat.st_mode))//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
+		notFound(req);
+    else if(mode.is_dir)//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
     {
         // hna khasni nchecky permissions
-        if(object_stat.st_mode & S_IWUSR){
+        if(mode.write_per){
 
             if (delete_directory(path)) {
                 statusLine = "HTTP/1.1 200 OK ";
                 body = "Directory deleted";
                 headers["Content-Length"] = to_string(body.size());
-            } else {
-                statusLine = "HTTP/1.1 500 Internal Server Error";
-                body = "bad trip!";
-                headers["Content-Length"] = to_string(body.size());
-            }
+            } else
+				Forbidden();
         }
-        else {
-            statusLine = "HTTP/1.1 500 Internal Server Error";
-            body = "perrmission denied";
-            headers["Content-Length"] = to_string(body.size());
-        }
-    }
-    else
+        else
+			perrmission_denied();
+	}else
     {
-        if(object_stat.st_mode & S_IWUSR){
+        if(mode.write_per){
             std::remove(path.c_str());
             statusLine = "HTTP/1.1 200 OK ";
             body = "File deleted";
             headers["Content-Length"] = to_string(body.size());
         }
-        else {
-            statusLine = "HTTP/1.1 500 Internal Server Error";
-            body = "perrmission denied";
-            headers["Content-Length"] = to_string(body.size());
-        }
+        else
+			perrmission_denied();
 
     }
     return true;
@@ -929,7 +843,6 @@ bool handle_delete(request &req , location &loc)
 				}
 			}
 		}
-		
 		void sending(int cltFd){
 			std::ostringstream response;
 			response << statusLine << "\r\n";
