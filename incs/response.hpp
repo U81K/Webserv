@@ -653,14 +653,7 @@ class response{
 	std::string path;
 	std::string query_string;
 	
-	typedef struct ultimate{
-		bool badtrip;
-		bool is_file;
-		bool is_dir;
-		bool read_per;
-		bool exec_per;
-		bool write_per;
-	} ultimate;
+
 	
 	void Forbidden()
 	{
@@ -675,7 +668,15 @@ class response{
 		body = "Moved Permanently";
 		headers["Content-Length"] = "17";
 
-	}
+	}	
+	typedef struct ultimate{
+		bool badtrip;
+		bool is_file;
+		bool is_dir;
+		bool read_per;
+		bool exec_per;
+		bool write_per;
+	} ultimate;
 	ultimate info(std::string res_path)
 	{
 		ultimate res;
@@ -683,8 +684,9 @@ class response{
 		res.badtrip = (stat(res_path.c_str(), &st) != 0);
 		res.is_file = S_ISREG(st.st_mode);
 		res.is_dir = S_ISDIR(st.st_mode);
-		// res.read_per =;
-		// res.
+		res.read_per = (st.st_mode & S_IRUSR) != 0;
+        res.write_per = (st.st_mode & S_IWUSR) != 0;
+        res.exec_per = (st.st_mode & S_IXUSR) != 0;
 		return res;
 
 	}
@@ -859,7 +861,7 @@ class response{
 
 bool handle_delete(request &req , location &loc)
 {
-   
+   if(get_resources(req,loc))
     std::cout << "handel delete" << std::endl;
     std::string path = loc.getDirective("root") + removeLoc(req);
     struct stat object_stat;
