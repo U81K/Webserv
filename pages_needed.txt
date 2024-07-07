@@ -1,0 +1,10 @@
+delete file no responce ;
+
+delete dir =>
+	has / no 403
+	     yes deleted 204
+		no 500
+get 
+	file => return requested file 
+	dir => has a / false 301
+	true if no autoindex 403
