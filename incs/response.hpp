@@ -59,6 +59,10 @@ class response{
 		} ultimate;
 		ultimate mode;
 	public:
+		void OK_CREATED(location loc,std::string fName);
+		void Internal_Server_Error();
+		void OK();
+		void Moved_Permanently(request req);
 		void clear();
 		bool foundInAllowedChat(char c);
 		std::string readFromFile(const std::string &filePath);

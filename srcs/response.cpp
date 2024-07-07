@@ -60,7 +60,7 @@ void response::notImplemented(request &req){
 	body = readFromFile("./pages/501.html");
 	headers["Content-Length"] = to_string(body.size());
 }
-		
+
 bool response::isReqWellFormated(request &req, ServerData &server){
 	///checking if the url contain a char not allowed
 	std::string url = req.getUrl();
@@ -102,7 +102,7 @@ bool response::isReqWellFormated(request &req, ServerData &server){
 		
 void response::notFound(request &req){
 	statusLine = req.getHttpV() + " 404 not found";
-	body = readFromFile("./pages/404.html");
+	body = readFromFile("./Pages/404.html");
 	headers["Content-Length"] = to_string(body.size());
 }
 
@@ -255,6 +255,23 @@ std::string response::removeLoc(request &req){
 	return (res);
 }
 
+void response::Internal_Server_Error()
+{
+	statusLine = "HTTP/1.1 500 Internal Server Error";
+	body = readFromFile("./Pages/500.html");
+	headers["Content-Length"] = to_string(body.size());
+
+}
+
+void response::OK()
+{
+	statusLine = "HTTP/1.1 200 OK";
+	body = readFromFile("./Pages/200.html");
+	headers["Content-Length"] = to_string(body.size());
+	headers["Content-Type"] = "text/html";
+
+}
+
 int response::cgiPost(std::string scriptPath, request &req){
 	std::ifstream scriptFile(scriptPath.c_str());
 	if (!scriptFile.is_open()){
@@ -315,20 +332,32 @@ int response::cgiPost(std::string scriptPath, request &req){
 		close(pipeOut[0]);
 		if (WIFEXITED(status)){
 			if (WEXITSTATUS(status) == 0) {
-				statusLine = "HTTP/1.1 200 OK";
-				headers["Content-Length"] = to_string(body.size());
-				headers["Content-Type"] = "text/html";
+				OK();
 				return (0);
 			} else {
-				statusLine = "HTTP/1.1 500 Internal Server Error";
-				body = "500 Internal Server Error";
-				headers["Content-Length"] = to_string(body.size());
+				Internal_Server_Error();
 				return (-1);
 			}
 		}
 		else
 			return (-1);
 	}
+}
+
+void response::OK_CREATED(location loc,std::string fName)
+{
+		statusLine = "HTTP/1.1 201 Created";
+		headers["Location"] = loc.getDirective("upload_path") + "/" + fName;
+		headers["Content-Length"] = "30";
+		body = "Resource successfully created.";
+}
+
+void response::Moved_Permanently(request req)
+{
+	statusLine = "HTTP/1.1 301 Moved Permanently";
+	headers["Location"] = req.getUrl() + "/";
+	body = readFromFile("./Pages/301.html");
+	headers["Content-Length"] = "17";
 }
 
 void response::handlePost(request &req, location loc){
@@ -347,10 +376,7 @@ void response::handlePost(request &req, location loc){
 		}
 		file.write(bodyWitoutBound.data(), bodyWitoutBound.size());
 		file.close();
-		statusLine = "HTTP/1.1 201 Created";
-		headers["Location"] = loc.getDirective("upload_path") + "/" + fName;
-		headers["Content-Length"] = "30";
-		body = "Resource successfully created.";
+		OK_CREATED(loc,fName);
 	}
 	else{
 		std::string fullPath = loc.getDirective("root") + removeLoc(req);
@@ -358,11 +384,8 @@ void response::handlePost(request &req, location loc){
 		// std::string fileContent;
 		
 		std::cout << fullPath << std::endl;
-		if (stat(fullPath.c_str(), &statbuf) != 0){//does not exist
-			statusLine = "HTTP/1.1 404 Not Found";
-			headers["Content-Length"] = "30";
-			body = "404 Not Found from handle post";
-		}
+		if (stat(fullPath.c_str(), &statbuf) != 0)//does not exist
+			notFound(req);
 		else {
 			if (S_ISDIR(statbuf.st_mode)){//is a directory
 				//check if the path end with "/"
@@ -371,35 +394,22 @@ void response::handlePost(request &req, location loc){
 					std::string indexPath = fullPath + "/index.html";
 					if (isFile(indexPath)){
 						bool isLocationHasCgi = false;
-						if (!isLocationHasCgi){
-							statusLine = "HTTP/1.1 403 Forbidden";
-							body  = "Directory listing is not allowed.";
-							headers["Content-Length"] = "33";
-						}
+						if (!isLocationHasCgi)
+							Forbidden();
 					}
-					else {
-						statusLine = "HTTP/1.1 403 Forbidden";
-						body  = "Directory listing is not allowed.";
-						headers["Content-Length"] = "33";
-					}
+					else
+						Forbidden();
 				}
-				else{
-					statusLine = "HTTP/1.1 301 Moved Permanently";
-					headers["Location"] = req.getUrl() + "/";
-					body = "Moved Permanently";
-					headers["Content-Length"] = "17";
-				}
+				else
+					Moved_Permanently(req);
 			}
 			else if (S_ISREG(statbuf.st_mode)){//is a file.
 				if (locationHasCgi(fullPath)){
 					std::cout << "kyen cgi from post\n";
 					cgiPost(fullPath, req);
 				}
-				else{
-					statusLine = "HTTP/1.1 403 Forbidden";
-					body = "Forbidden";
-					headers["Content-Length"] = "9";
-				}
+				else
+					Forbidden();
 			}
 		}
 	}
@@ -478,17 +488,10 @@ int response::cgiGet(std::string scriptPath, std::string query){
 		}
 		close(pipefd[0]);
 		if (WIFEXITED(status)){
-			if (WEXITSTATUS(status) == 0) {
-				statusLine = "HTTP/1.1 200 OK";
-				headers["Content-Length"] = to_string(body.size());
-				headers["Content-Type"] = "text/html";
-				return (0);
-			} else {
-				statusLine = "HTTP/1.1 500 Internal Server Error";
-				body = "500 Internal Server Error";
-				headers["Content-Length"] = to_string(body.size());
-				return (-1);
-			}
+			if (WEXITSTATUS(status) == 0)
+				OK();
+			else
+				Internal_Server_Error();
 		}
 		else
 			return (-1);
@@ -586,15 +589,15 @@ bool response::list_directory(std::string &dir_path) {
 void response::Forbidden()
 {
 	statusLine = "HTTP/1.1 403 Forbidden";
-	body  = "Directory listing is not allowed.";
+	body  = readFromFile("./Pages/403.html");
 	headers["Content-Length"] = "33";
 
 }
 void response::moved_permanently(request req){
 	statusLine = "HTTP/1.1 301 Moved Permanently";
 	headers["Location"] = req.getUrl() + "/";
-	body = "Moved Permanently";
-	headers["Content-Length"] = "17";
+	body = readFromFile("./Pages/301.html");
+	headers["Content-Length"] = to_string(body.size());
 
 }
 response::ultimate response::info(std::string res_path){
@@ -633,7 +636,7 @@ bool response::handel_get(request &req, location loc){
 	else
 	{
 		if(!mode.read_per)
-			perrmission_denied();
+			Forbidden();
 		if(mode.is_dir)
 		{
 			if(path.at(path.size() - 1) == '/'){		
@@ -765,11 +768,8 @@ void response::generate(request &req, ServerData &serv){
 						handel_get(req, loc);
 					else if(req.getMethod() == request::DELETE)
 						handle_delete(req,loc);
-					else{ 
-						statusLine = "HTTP/1.1 200 OK";
-						body = "hello world!";
-						headers["Content-Length"] = "12";
-					}
+					else
+						OK();
 				}
 			}
 		}
