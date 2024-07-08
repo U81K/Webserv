@@ -760,6 +760,8 @@ void response::perrmission_denied(){
 
 bool response::handle_delete(request &req , location &loc)
 {
+
+	
    if(!get_resources(req,loc))
 		notFound(req);
     else if(mode.is_dir)//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
