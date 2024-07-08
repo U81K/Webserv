@@ -57,6 +57,7 @@ void startServer(std::vector<class ServerData> &servers){
 			perror("select");
 			exit(1);
 		}
+		
 		for(int i = 0; i < FD_SETSIZE; i++){
 			if (FD_ISSET(i, &readySocketR)){ // i is ready for reading
 				if (isFdOfServers(i, servers)){ //there is an incoming connection request10000000 from a client waiting to be accepted.
