@@ -750,6 +750,8 @@ bool response::handle_delete(request &req , location &loc)
 			perrmission_denied();
 	}else
     {
+
+		
         if(mode.write_per){
             std::remove(path.c_str());
             statusLine = "HTTP/1.1 200 OK ";
