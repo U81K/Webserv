@@ -101,6 +101,7 @@ class response{
 		void generate(request &req, ServerData &serv);
 		void sending(int cltFd);
 		void responce_( STATUS_CODE status);
+		void Conflict();
 };
 
 #endif

@@ -757,17 +757,23 @@ void response::perrmission_denied(){
 	body = "perrmission denied";
 	headers["Content-Length"] = to_string(body.size());
 }
+void response::Conflict()
+{
+	statusLine = "HTTP/1.1 500 Internal Server Error";
+	body = "perrmission denied";
+	headers["Content-Length"] = to_string(body.size());
 
+}
 bool response::handle_delete(request &req , location &loc)
 {
 
-	
+
    if(!get_resources(req,loc))
 		notFound(req);
     else if(mode.is_dir)//mode_t st_mode: File mode, which includes the file type and file mode bits (permissions).
     {
+		if(path.at(path.size() - 1) == '/'){
         // hna khasni nchecky permissions
-        if(mode.write_per){
 
             if (delete_directory(path)) {
 				std::cout << "path = "<< "\'" << path << "\'"  << std::endl;
@@ -775,10 +781,17 @@ bool response::handle_delete(request &req , location &loc)
                 body = "Directory deleted";
                 headers["Content-Length"] = to_string(body.size());
             } else
-				Forbidden();
-        }
-        else
-			perrmission_denied();
+			{
+				if(mode.write_per)
+					perrmission_denied();
+				else
+					Forbidden();
+					
+			}
+		}
+		else
+			Conflict();
+		
 	}else
     {
 
