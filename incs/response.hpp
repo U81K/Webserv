@@ -43,6 +43,12 @@ class response{
 		bool auto_index;
 		std::string path;
 		std::string query_string;
+		typedef enum  STATUS_CODE {
+			// NotFound,
+			// Forbidden,
+			// perrmission_denied,
+
+		} STATUS_CODE ;
 		typedef struct ultimate{
 		bool badtrip;
 		bool is_file;
@@ -53,6 +59,10 @@ class response{
 		} ultimate;
 		ultimate mode;
 	public:
+		void OK_CREATED(location loc,std::string fName);
+		void Internal_Server_Error();
+		void OK();
+		void Moved_Permanently(request req);
 		void clear();
 		bool foundInAllowedChat(char c);
 		std::string readFromFile(const std::string &filePath);
@@ -80,7 +90,6 @@ class response{
 		bool locationHasCgi(std::string fullPath);
 		std::string generateListItems(const std::string &fileAndDirNames);
 		bool list_directory(std::string &dir_path);
-
 		void Forbidden();
 		void moved_permanently(request req);
 		ultimate info(std::string res_path);
@@ -91,6 +100,7 @@ class response{
 		bool handle_delete(request &req , location &loc);
 		void generate(request &req, ServerData &serv);
 		void sending(int cltFd);
+		void responce_( STATUS_CODE status);
 };
 
 #endif
