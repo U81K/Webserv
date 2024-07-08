@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: khaimer <khaimer@student.42.fr>            +#+  +:+       +#+        */
+/*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/17 14:33:37 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/07/06 21:52:16 by khaimer          ###   ########.fr       */
+/*   Updated: 2024/07/08 16:24:37 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ void startServer(std::vector<class ServerData> &servers){
 			else if (FD_ISSET(i, &readySocketW)){
 				if (clients[i].sendResponce()){
 					FD_CLR(i, &currSocketW);
-					FD_SET(i, &currSocketR);
+					close(i);
 				}
 			}
 		}
@@ -392,7 +392,7 @@ int main(int ac, char **av){
 	
 	std::vector<class ServerData> servers;
 	servers = parseConfigFile(av[1]);
-	printServers(servers);
+	// printServers(servers);
 	startServer(servers);
 	// close(servfd);
 	return (0);

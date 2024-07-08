@@ -6,11 +6,14 @@
 /*   By: bgannoun <bgannoun@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/19 19:03:42 by bgannoun          #+#    #+#             */
-/*   Updated: 2024/05/19 19:06:01 by bgannoun         ###   ########.fr       */
+/*   Updated: 2024/07/08 19:08:42 by bgannoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incs/response.hpp"
+#include <signal.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 
 std::string response::to_string(int num)
 {
@@ -284,6 +287,7 @@ int response::cgiPost(std::string scriptPath, request &req){
 		std::cerr << "error piping\n";
 		return (1);
 	}
+	int startTime = time(0);
 	pid_t pid = fork();
 	if (pid == 0){
 		close(pipeOut[0]); // Close read end of stdout pipe
@@ -319,7 +323,17 @@ int response::cgiPost(std::string scriptPath, request &req){
 		close(pipeIn[1]); // Close write end after writing
 		
 		int status;
-		waitpid(pid, &status, 0);
+		int result;
+		while ((result = waitpid(pid, &status, WNOHANG)) == 0){
+			if (result == 0){
+				if ((time(0) - startTime) > 2){
+					Internal_Server_Error();
+					kill(pid, SIGKILL);
+					close(pipeOut[0]);
+					return (1);
+				}
+			}
+		}
 		// Read output from the pipe
 		char buffer[4096];
 		ssize_t bytesRead;
@@ -332,9 +346,13 @@ int response::cgiPost(std::string scriptPath, request &req){
 		close(pipeOut[0]);
 		if (WIFEXITED(status)){
 			if (WEXITSTATUS(status) == 0) {
-				OK();
+				statusLine = "HTTP/1.1 200 OK";
+				headers["Content-Length"] = std::to_string(body.size());
+				headers["Content-Type"] = "text/html";
 				return (0);
 			} else {
+				// statusLine = "HTTP/1.1 500 Internal Server Error";
+				// headers["Content-Length"] = "0";
 				Internal_Server_Error();
 				return (-1);
 			}
@@ -361,25 +379,27 @@ void response::Moved_Permanently(request req)
 }
 
 void response::handlePost(request &req, location loc){
-	if ((loc.getDirective("upload_path")).size() > 0){ //location support upload
-		// get the file name
-		std::string fName = getFileName(req);
-		// get the clean body
-		std::string bodyWitoutBound;
-		bodyWitoutBound = getBodyWitoutBound(req);
-		// output the filer
-		std::string fullpath = loc.getDirective("upload_path") + "/" + fName;
-		std::ofstream file(fullpath.c_str(), std::ios::binary);
-		if (!file.is_open()) {
-			std::cerr << "Failed to open file: " << loc.getDirective("upload_path") + "/" + fName << std::endl;
-			return;
-		}
-		file.write(bodyWitoutBound.data(), bodyWitoutBound.size());
-		file.close();
-		OK_CREATED(loc,fName);
+	std::string fullPath = loc.getDirective("root") + removeLoc(req);
+	if (!locationHasCgi(fullPath)){
+		if ((loc.getDirective("upload_path")).size() > 0){ //location support upload
+			// get the file name
+			std::string fName = getFileName(req);
+			// get the clean body
+			std::string bodyWitoutBound;
+			bodyWitoutBound = getBodyWitoutBound(req);
+			// output the filer
+			std::string fullpath = loc.getDirective("upload_path") + "/" + fName;
+			std::ofstream file(fullpath.c_str(), std::ios::binary);
+			if (!file.is_open()) {
+				std::cerr << "Failed to open file: " << loc.getDirective("upload_path") + "/" + fName << std::endl;
+				return;
+			}
+			file.write(bodyWitoutBound.data(), bodyWitoutBound.size());
+			file.close();
+			OK_CREATED(loc,fName);
+		}	
 	}
 	else{
-		std::string fullPath = loc.getDirective("root") + removeLoc(req);
 		struct stat statbuf;
 		// std::string fileContent;
 		
@@ -405,7 +425,6 @@ void response::handlePost(request &req, location loc){
 			}
 			else if (S_ISREG(statbuf.st_mode)){//is a file.
 				if (locationHasCgi(fullPath)){
-					std::cout << "kyen cgi from post\n";
 					cgiPost(fullPath, req);
 				}
 				else
@@ -451,6 +470,7 @@ int response::cgiGet(std::string scriptPath, std::string query){
 		std::cerr << "error piping\n";
 		return (1);
 	}
+	int startTime = time(0);
 	pid_t pid = fork();
 	if (pid == 0){
 		close(pipefd[0]); // Close read end
@@ -476,7 +496,17 @@ int response::cgiGet(std::string scriptPath, std::string query){
 		// Parent process
 		close(pipefd[1]); // Close write end
 		int status;
-		waitpid(pid, &status, 0);
+		int result;
+		while ((result = waitpid(pid, &status, WNOHANG)) == 0){
+			if (result == 0){
+				if ((time(0) - startTime) > 2){
+					Internal_Server_Error();
+					kill(pid, SIGKILL);
+					close(pipefd[0]);
+					return (1);
+				}
+			}
+		}
 		// Read output from the pipe
 		char buffer[4096];
 		ssize_t bytesRead;
@@ -488,14 +518,20 @@ int response::cgiGet(std::string scriptPath, std::string query){
 		}
 		close(pipefd[0]);
 		if (WIFEXITED(status)){
-			if (WEXITSTATUS(status) == 0)
-				OK();
-			else
+			if (WEXITSTATUS(status) == 0){
+				statusLine = "HTTP/1.1 200 OK";
+				headers["Content-Length"] = std::to_string(body.size());
+				headers["Content-Type"] = "text/html";
+				return (0);
+			}
+			else{
 				Internal_Server_Error();
+			}
 		}
 		else
 			return (-1);
 	}
+	return (0);
 }
 void response::clear(){
 	statusLine.clear();
@@ -580,9 +616,9 @@ bool response::list_directory(std::string &dir_path) {
 	closedir(dir);
 	// body += "</ul>\n</body>\n</html>";
 	body = htmlContent;
-	std::cout << body << std::endl;
+	// std::cout << body << std::endl;
 	// std::string size = "" + body.size();
-	std::cout << "body = " << body << std::endl;
+	// std::cout << "body = " << body << std::endl;
 	headers["Content-Length"] = to_string(body.size());
 	return true;
 }	
@@ -648,7 +684,7 @@ bool response::handel_get(request &req, location loc){
 					statusLine = "HTTP/1.1 200 OK";
 					while(std::getline(file_,line)){
 						body += line + '\n';
-						std::cout << line << std::endl;
+						// std::cout << line << std::endl;
 					}
 				}
 				else if(auto_index)
@@ -664,15 +700,16 @@ bool response::handel_get(request &req, location loc){
 			
 		}
 		else if(mode.is_file){
-			if (locationHasCgi(path))
-					cgiGet(path, query_string);
+			if (locationHasCgi(path)){
+				cgiGet(path, query_string);
+			}
 			else{
 				statusLine = "HTTP/1.1 200 OK";
 				std::ifstream file_(path.c_str());
 				std::string line;
 				while(std::getline(file_,line)){
 					body += line + '\n';
-					std::cout << line << std::endl;
+					// std::cout << line << std::endl;
 				}
 				headers["Content-Length"] = to_string(body.size());
 			}
@@ -768,8 +805,6 @@ void response::generate(request &req, ServerData &serv){
 						handel_get(req, loc);
 					else if(req.getMethod() == request::DELETE)
 						handle_delete(req,loc);
-					else
-						OK();
 				}
 			}
 		}
